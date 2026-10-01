@@ -1,0 +1,29 @@
+schema: spec-driven
+
+context: |
+  Public benchmark repo: does a documented semantic layer (not the LLM) make natural-language
+  questions over a warehouse return correct answers? Data is Seattle / King County open data.
+  The human is the product manager; agents implement unattended from approved changes.
+  Read CLAUDE.md for the design-session vs. build-run split and the APPROVED / BLOCKED.md protocol.
+  Runnable target is DuckDB; Snowflake is documented parity only. Stack: Python 3.11+, dbt-core +
+  dbt-duckdb, Dagster, an MCP server. No credentials or paid services in any build step.
+  Eval reference answers are hand-written SQL committed before any model run and never tuned to output.
+  Source material: docs/product-brief.md and docs/eval-questions.md.
+
+rules:
+  proposal:
+    - State what is out of scope.
+    - Name which eval questions (by number in docs/eval-questions.md) this change enables or affects, if any.
+  design:
+    - Record every decision the PM made in the session, with the reason, so the builder never has to guess.
+    - List open questions explicitly; a change with open questions must not be marked APPROVED.
+  tasks:
+    - Each task is 15-45 minutes of agent work, one concern, one commit.
+    - Each task ends with a verification command that exits 0 on success.
+    - Name the files, models and tables each task creates or changes.
+
+operations:
+  apply:
+    guidance:
+      - Unattended runs never edit proposal.md, design.md or specs; write BLOCKED.md instead (see CLAUDE.md).
+      - Run each task's verification command before checking it off.

@@ -1,0 +1,26 @@
+# data
+data/raw/
+data/quarantine/
+*.duckdb
+*.duckdb.wal
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# dbt
+target/
+dbt_packages/
+logs/
+
+# dagster
+.dagster/
+tmp*/
+
+# brainstorming visual companion scratch
+.superpowers/
+
+.env
+.DS_Store
