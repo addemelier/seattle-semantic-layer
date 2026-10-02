@@ -1,4 +1,4 @@
-> **NEXT QUESTION (session paused mid-grill, 2026-10-02):** round 3 is open: detail panel and interactions, what "engagement data" means, app stack, hosting and budget, where Dagster runs, repo identity, and the v1 finish line. Not APPROVED; do not build.
+> **NEXT QUESTION (session paused mid-grill, 2026-10-02):** round 4 is open: Redis's role (events stream and cache), hosting provider, what event fields are captured (IPs, search text), gold storage format (DuckDB file or DuckLake), what "the other attempt" to clean out refers to, and the v1 date. Not APPROVED; do not build.
 
 # Design: permit-map-destination
 
@@ -16,6 +16,14 @@ Grill-me session, 2026-10-02. This change resets the project's destination. No b
 | D6 | **It's a live app, not a static site.** It starts on paid hosting at a modest monthly cost and migrates later to the PM's Raspberry Pi. | It needs to be shareable, with live engagement capture. |
 | D7 | **Permit data refreshes daily. User and engagement data is captured live.** | Daily is enough for permits; engagement is the part that's live. |
 | D8 | **Orchestration is a Dagster job, run either on the Raspberry Pi or on a Dagster Cloud instance (open, see round 3).** | Moves ingest off the build sandbox. |
+
+| D9 | **Map UX:** an address search zooms to the address with a 1,000 ft ring. Pins are colored by stage (In review / Issued / Under inspection). Filters: stage, work type (new building, addition/alteration, demolition, ADU), minimum valuation, applied-within. Clicking a pin opens a side panel with address, description, work type, stage, applied/issued/last-inspection dates, declared valuation, units added/removed, contractor and a link to the city permit page. A list view shows the permits in view, sorted by distance. | Exactly what the PM wants when looking at a house. |
+| D10 | **Engagement = anonymous product analytics, no login.** Anyone can use search. Capture broadly ("vacuum it up"): searches, permit clicks, filter use and similar events. Accounts, watchlists and alerts come later, only if people beyond the PM use it. | Learn whether anyone uses it before building auth. |
+| D11 | **Stack preferences:** the most modern data tooling available. DuckDB is preferred. Avoid Postgres. Use Redis (or a Redis-compatible store) to broaden the PM's data vocabulary. The PM is not versed in web hosting, so pick the simplest deploy and upkeep. | PM preference. |
+| D12 | **Hosting budget is $15–20/mo** if that buys meaningfully easier deployment and upkeep. A later migration to the Raspberry Pi stays a goal. | PM preference. |
+| D13 | **Dagster OSS** runs in the same deployment as the app, with a daily schedule. | Simple ETL; no Dagster Cloud needed. |
+| D14 | **Repo identity:** archive `docs/product-brief.md` and `docs/eval-questions.md` to `docs/archive/` (they can come back later). Rename the repo. Rewrite the README and CLAUDE.md for the new destination. | The old destination is dropped (D2). |
+| D15 | **v1 finish line:** the PM can send a friend a URL; they search an address, see open permits on a map, click one and get details. Permit data refreshes daily with no manual step, and engagement events are captured live. Post-v1: Pi migration, accounts, alerts. | Accepted as proposed. |
 
 ## Facts found
 
