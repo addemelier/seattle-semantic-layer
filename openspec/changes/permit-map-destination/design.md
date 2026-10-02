@@ -15,8 +15,7 @@ Grill-me session, 2026-10-02. This change resets the project's destination. No b
 | D5 | **v1 data is D2 (SDCI building permits) plus D4 (neighborhood geography).** D1 licenses and D3 food inspections are out of scope. | One source to ingest, model and map. |
 | D6 | **It's a live app, not a static site.** It starts on paid hosting at a modest monthly cost and migrates later to the PM's Raspberry Pi. | It needs to be shareable, with live engagement capture. |
 | D7 | **Permit data refreshes daily. User and engagement data is captured live.** | Daily is enough for permits; engagement is the part that's live. |
-| D8 | **Orchestration is a Dagster job, run either on the Raspberry Pi or on a Dagster Cloud instance (open, see round 3).** | Moves ingest off the build sandbox. |
-
+| D8 | **Orchestration is a Dagster job, run either on the Raspberry Pi or on a Dagster Cloud instance (resolved by D13).** | Moves ingest off the build sandbox. |
 | D9 | **Map UX:** an address search zooms to the address with a 1,000 ft ring. Pins are colored by stage (In review / Issued / Under inspection). Filters: stage, work type (new building, addition/alteration, demolition, ADU), minimum valuation, applied-within. Clicking a pin opens a side panel with address, description, work type, stage, applied/issued/last-inspection dates, declared valuation, units added/removed, contractor and a link to the city permit page. A list view shows the permits in view, sorted by distance. | Exactly what the PM wants when looking at a house. |
 | D10 | **Engagement = anonymous product analytics, no login.** Anyone can use search. Capture broadly ("vacuum it up"): searches, permit clicks, filter use and similar events. Accounts, watchlists and alerts come later, only if people beyond the PM use it. | Learn whether anyone uses it before building auth. |
 | D11 | **Stack preferences:** the most modern data tooling available. DuckDB is preferred. Avoid Postgres. Use Redis (or a Redis-compatible store) to broaden the PM's data vocabulary. The PM is not versed in web hosting, so pick the simplest deploy and upkeep. | PM preference. |
@@ -29,12 +28,11 @@ Grill-me session, 2026-10-02. This change resets the project's destination. No b
 
 - The cloud build sandbox gets HTTP 403 from `data.seattle.gov`, so unattended builders cannot pull live Socrata data unless that domain is allowlisted.
 
-## Open questions (round 3)
+## Open questions (round 4)
 
-1. Detail panel contents, search and filters
-2. What "user data and engagement" means: anonymous analytics, or accounts, saved permits and alerts
-3. App stack
-4. Hosting provider, monthly budget, domain
-5. Where Dagster runs, and whether builders test against committed fixtures
-6. Repo identity: rename, what happens to the old brief and eval docs, CLAUDE.md rewrite
-7. v1 finish line and date
+1. Redis's role: event stream, cache, or both; Redis or Valkey
+2. Hosting provider within $15–20/mo
+3. Event payload and privacy: raw IPs, searched address text
+4. Gold storage: a single DuckDB file or DuckLake
+5. What "the other attempt" to clean out refers to; who renames the repo, and the new name
+6. v1 target date
