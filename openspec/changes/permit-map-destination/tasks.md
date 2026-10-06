@@ -29,7 +29,7 @@ Every task runs offline. Read design.md "Facts found" and "Build notes" first.
 
 ## 6. Engagement events to Redis Stream
 
-- [ ] 6.1 Create `permitmap/events.py` with `record_event(r, event_type, session_id, *, search_text=None, lat=None, lon=None, filters=None, permit_id=None, user_agent=None, referrer=None, ip=None, now=None) -> str`. It validates the type, rounds lat/lon to 3 decimals, hashes the IP per the spec using env `EVENT_IP_SALT` (no salt → null hash, IP discarded), `XADD`s to `events:v1` with approximate MAXLEN, and returns the event_id. Write `tests/test_events.py` (fakeredis) covering every engagement-events scenario except the drain, including asserting that the raw IP string appears in no stored field.
+- [x] 6.1 Create `permitmap/events.py` with `record_event(r, event_type, session_id, *, search_text=None, lat=None, lon=None, filters=None, permit_id=None, user_agent=None, referrer=None, ip=None, now=None) -> str`. It validates the type, rounds lat/lon to 3 decimals, hashes the IP per the spec using env `EVENT_IP_SALT` (no salt → null hash, IP discarded), `XADD`s to `events:v1` with approximate MAXLEN, and returns the event_id. Write `tests/test_events.py` (fakeredis) covering every engagement-events scenario except the drain, including asserting that the raw IP string appears in no stored field.
   - Verify: `python -m pytest tests/test_events.py -q`
 
 ## 7. Drain events to Parquet
