@@ -1,0 +1,16 @@
+# No secrets. Paths are relative to the repo root (run dbt from there).
+# DuckLake and sqlite_scanner come from PyPI wheels (see permitmap/lake.py);
+# `python -m permitmap.load_fixture` installs them locally before dbt runs,
+# so ATTACH autoloads them without reaching extensions.duckdb.org.
+permitmap:
+  target: fixture
+  outputs:
+    fixture:
+      type: duckdb
+      path: ":memory:"
+      threads: 1
+      attach:
+        - path: "ducklake:sqlite:data/lake/catalog.sqlite"
+          alias: lake
+          # DATA_PATH is not set here: DuckLake reads it from the catalog, where
+          # load_fixture recorded data/lake/files/ when it created the lake.

@@ -28,8 +28,10 @@ def connect_lake(catalog_path: str | Path, data_path: str | Path) -> duckdb.Duck
     The catalog is a SQLite file; data files are written under `data_path`.
     Parent directories are created if missing.
     """
-    catalog_path = Path(catalog_path)
-    data_path = Path(data_path)
+    # Resolve so the DATA_PATH recorded in the catalog is the same absolute path
+    # whether the caller passed a relative or an absolute path.
+    catalog_path = Path(catalog_path).resolve()
+    data_path = Path(data_path).resolve()
     catalog_path.parent.mkdir(parents=True, exist_ok=True)
     data_path.mkdir(parents=True, exist_ok=True)
 

@@ -19,7 +19,7 @@ Every task runs offline. Read design.md "Facts found" and "Build notes" first.
 
 ## 4. dbt project and staging model
 
-- [ ] 4.1 Create `permitmap/load_fixture.py` (`python -m permitmap.load_fixture`): it loads the fixture CSV, all columns as VARCHAR, into `lake.bronze.sdci_building_permits` and replaces the table on rerun. Create the dbt project under `dbt/` (`dbt_project.yml`, `profiles.yml` target `fixture` attaching the DuckLake catalog at `data/lake/catalog.sqlite`, plus `models/staging/_sources.yml`) and `models/staging/stg_sdci__building_permits.sql`: snake_case names, typed dates/numerics, `status_norm = lower(trim(statuscurrent))`, with a `.yml` describing every column. If dbt-duckdb can't attach DuckLake offline, apply the design D19 fallback (a DuckDB file at `data/warehouse.duckdb`) and note it in the PR.
+- [x] 4.1 Create `permitmap/load_fixture.py` (`python -m permitmap.load_fixture`): it loads the fixture CSV, all columns as VARCHAR, into `lake.bronze.sdci_building_permits` and replaces the table on rerun. Create the dbt project under `dbt/` (`dbt_project.yml`, `profiles.yml` target `fixture` attaching the DuckLake catalog at `data/lake/catalog.sqlite`, plus `models/staging/_sources.yml`) and `models/staging/stg_sdci__building_permits.sql`: snake_case names, typed dates/numerics, `status_norm = lower(trim(statuscurrent))`, with a `.yml` describing every column. If dbt-duckdb can't attach DuckLake offline, apply the design D19 fallback (a DuckDB file at `data/warehouse.duckdb`) and note it in the PR.
   - Verify: `python -m permitmap.load_fixture && dbt build --project-dir dbt --profiles-dir dbt -s stg_sdci__building_permits`
 
 ## 5. Gold open permits and semantic definitions

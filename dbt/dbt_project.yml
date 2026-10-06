@@ -1,0 +1,19 @@
+name: permitmap
+version: "0.1.0"
+config-version: 2
+profile: permitmap
+
+model-paths: ["models"]
+test-paths: ["tests"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  permitmap:
+    +database: lake
+    staging:
+      +schema: silver
+      +materialized: table
+    gold:
+      +schema: gold
+      +materialized: table
