@@ -1,6 +1,6 @@
 # seattle-semantic-layer — working agreement
 
-A public benchmark showing that a documented semantic layer, not the LLM, is what makes natural-language questions over a warehouse return correct answers. Built over Seattle / King County open data.
+A live, shareable Redfin-style map of open Seattle building permits: search an address, see what could get built nearby, click a permit for details. The dbt medallion (DuckLake) and a semantic layer are built to serve the app; anonymous engagement events flow back into the same warehouse. Built on Seattle open data.
 
 The human on this repo is the **product manager**. He designs and approves; agents implement. There are two modes, and every session is in exactly one of them.
 
@@ -47,10 +47,10 @@ Triggered on a schedule. No human is watching. Do not ask questions; there is no
 
 ## Project constraints
 
-- **Warehouse:** DuckDB is the runnable target. Snowflake is documented parity only (`SNOWFLAKE_PARITY.md`, committed Cortex Analyst semantic-model YAML that doesn't execute locally).
-- **Stack:** Python 3.11+, dbt-core + dbt-duckdb, Dagster for orchestration, an MCP server exposing the gold layer and semantic layer, local Parquet landing zone.
-- **Data:** Seattle Open Data / King County via Socrata (SODA) APIs only. Raw pulls land in `data/raw/` (gitignored). Ingest must be idempotent and quarantine malformed rows instead of failing.
-- **Reproducibility:** a stranger runs `git clone` + one command and gets the eval table in under ~5 minutes on a laptop.
-- **The eval is the product.** Reference answers in `eval/reference/` are hand-written SQL, committed **before** any model is run, and are never edited to match model output. Same prompt across all three configurations (raw / gold / gold + semantic model); only the context changes.
-- Publish whatever the benchmark actually produces. Never fabricate or tune a result.
+- **Storage:** DuckLake (SQLite catalog) via DuckDB. No Postgres.
+- **Stack:** Python 3.11+, dbt-core + dbt-duckdb, Dagster OSS, FastAPI, MapLibre front end, Redis 8 (event stream + cache). One Docker Compose file, arm64 and amd64.
+- **Hosting:** Hetzner ARM VPS with Coolify; later a Raspberry Pi. Budget ≤ $20/mo. Builders never touch hosting accounts or credentials.
+- **Data:** Seattle Open Data via Socrata (SODA) only, refreshed daily by Dagster on the server. Ingest is idempotent and quarantines malformed rows. Build-time verification uses committed fixtures in `tests/fixtures/`, never the network.
+- **Engagement data:** anonymous; never store raw IPs; never commit event data.
+- **User:** the PM, as a neighbor or homebuyer. When in doubt, ask "would he use this when looking at a house?"
 - Public repo hygiene: personal accounts only, no employer names, code, schemas or naming conventions from anywhere else.
