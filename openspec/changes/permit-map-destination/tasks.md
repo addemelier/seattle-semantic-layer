@@ -9,7 +9,7 @@ Every task runs offline. Read design.md "Facts found" and "Build notes" first.
 
 ## 2. Python package and offline DuckLake
 
-- [ ] 2.1 Create `pyproject.toml` (package `permitmap`, Python ≥3.11) with deps `duckdb==1.5.5`, `duckdb-extensions`, `duckdb-extension-ducklake`, `duckdb-extension-sqlite_scanner` (all pinned to the duckdb version), `dbt-core`, `dbt-duckdb`, `pyarrow`, `redis>=5`, and dev extras `pytest`, `fakeredis`. Create `permitmap/__init__.py` and `permitmap/lake.py` with `connect_lake(catalog_path, data_path) -> duckdb.DuckDBPyConnection`, which imports the extensions offline (see design Facts), attaches DuckLake as `lake` and creates its parent directories. Add `data/` to `.gitignore` (replacing the narrower `data/raw/` and `data/quarantine/` lines). Write `tests/test_lake.py`: in `tmp_path`, create a table in `lake`, reopen the connection and read it back.
+- [x] 2.1 Create `pyproject.toml` (package `permitmap`, Python ≥3.11) with deps `duckdb==1.5.5`, `duckdb-extensions`, `duckdb-extension-ducklake`, `duckdb-extension-sqlite_scanner` (all pinned to the duckdb version), `dbt-core`, `dbt-duckdb`, `pyarrow`, `redis>=5`, and dev extras `pytest`, `fakeredis`. Create `permitmap/__init__.py` and `permitmap/lake.py` with `connect_lake(catalog_path, data_path) -> duckdb.DuckDBPyConnection`, which imports the extensions offline (see design Facts), attaches DuckLake as `lake` and creates its parent directories. Add `data/` to `.gitignore` (replacing the narrower `data/raw/` and `data/quarantine/` lines). Write `tests/test_lake.py`: in `tmp_path`, create a table in `lake`, reopen the connection and read it back.
   - Verify: `pip install -e '.[dev]' && python -m pytest tests/test_lake.py -q`
 
 ## 3. Synthetic fixtures

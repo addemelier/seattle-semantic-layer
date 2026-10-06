@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "permitmap"
+version = "0.1.0"
+description = "Live map of open Seattle building permits: DuckLake medallion, semantic layer, engagement events."
+requires-python = ">=3.11"
+dependencies = [
+    "duckdb==1.5.5",
+    "duckdb-extensions==1.5.5",
+    "duckdb-extension-ducklake==1.5.5",
+    "duckdb-extension-sqlite_scanner==1.5.5",
+    "dbt-core",
+    "dbt-duckdb",
+    "pyarrow",
+    "redis>=5",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "fakeredis"]
+
+[tool.setuptools]
+packages = ["permitmap"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

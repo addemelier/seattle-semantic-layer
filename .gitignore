@@ -1,12 +1,12 @@
 # data
-data/raw/
-data/quarantine/
+data/
 *.duckdb
 *.duckdb.wal
 
 # python
 __pycache__/
 *.pyc
+*.egg-info/
 .venv/
 .pytest_cache/
 
