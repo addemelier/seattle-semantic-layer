@@ -14,7 +14,7 @@ Every task runs offline. Read design.md "Facts found" and "Build notes" first.
 
 ## 3. Synthetic fixtures
 
-- [ ] 3.1 Create `tests/fixtures/sdci_building_permits_sample.csv` with ~40 synthetic rows using exactly the column names in design Facts. Include: every closed and known-open status from Build notes; one unknown status (`Pending Something`); two rows sharing a `permitnum`; at least 3 ADU descriptions (ADU, DADU, "accessory dwelling unit"); demolition and new-building types; all coordinates inside lat 47.49–47.74 and lon −122.44 to −122.24. Create `tests/fixtures/neighborhoods_sample.geojson` with 3 rectangular polygons (property `neighborhood_name`: Ballard, Capitol Hill, Beacon Hill). Create `tests/fixtures/README.md` stating that the data is synthetic and the column names are unverified. Write `tests/test_fixtures.py` asserting those properties.
+- [x] 3.1 Create `tests/fixtures/sdci_building_permits_sample.csv` with ~40 synthetic rows using exactly the column names in design Facts. Include: every closed and known-open status from Build notes; one unknown status (`Pending Something`); two rows sharing a `permitnum`; at least 3 ADU descriptions (ADU, DADU, "accessory dwelling unit"); demolition and new-building types; all coordinates inside lat 47.49–47.74 and lon −122.44 to −122.24. Create `tests/fixtures/neighborhoods_sample.geojson` with 3 rectangular polygons (property `neighborhood_name`: Ballard, Capitol Hill, Beacon Hill). Create `tests/fixtures/README.md` stating that the data is synthetic and the column names are unverified. Write `tests/test_fixtures.py` asserting those properties.
   - Verify: `python -m pytest tests/test_fixtures.py -q`
 
 ## 4. dbt project and staging model
