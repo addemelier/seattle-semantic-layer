@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: bronze
+    database: lake
+    schema: bronze
+    description: Raw landed data, every column VARCHAR, as delivered by the source.
+    tables:
+      - name: sdci_building_permits
+        description: >
+          Seattle SDCI building permits (Socrata 76t5-zqzr). At build time this is the
+          synthetic fixture in tests/fixtures/; column names are unverified until the
+          first real pull.

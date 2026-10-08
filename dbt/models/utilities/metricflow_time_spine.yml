@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: metricflow_time_spine
+    description: One row per day, 2000-01-01 to 2035-12-31. Required by the semantic layer to parse metrics.
+    time_spine:
+      standard_granularity_column: date_day
+    columns:
+      - name: date_day
+        description: Calendar day.
+        granularity: day

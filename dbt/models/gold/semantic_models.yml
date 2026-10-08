@@ -1,0 +1,41 @@
+version: 2
+
+semantic_models:
+  - name: open_permits
+    description: >
+      Open Seattle building permits. Single home for the open-permit, stage and
+      work_type definitions that the app and the docs both use.
+    model: ref('fct_open_permits')
+    defaults:
+      agg_time_dimension: applied_date
+    entities:
+      - name: permit
+        type: primary
+        expr: permit_id
+    dimensions:
+      - name: stage
+        type: categorical
+        description: in_review (no issued date) or issued.
+      - name: work_type
+        type: categorical
+        description: new_building, addition_alteration, demolition or adu (ADU wins).
+      - name: applied_date
+        type: time
+        description: Date the application was accepted.
+        type_params:
+          time_granularity: day
+    measures:
+      - name: open_permits
+        description: Count of open permits.
+        agg: count
+        expr: permit_id
+
+metrics:
+  - name: open_permit_count
+    label: Open permits
+    description: >
+      Number of permits not expired, completed/finaled, closed, canceled or withdrawn,
+      one per permit number.
+    type: simple
+    type_params:
+      measure: open_permits

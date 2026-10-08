@@ -1,0 +1,55 @@
+version: 2
+
+models:
+  - name: fct_open_permits
+    description: >
+      One row per open Seattle building permit: anything that could still get built.
+      A permit is open unless its latest record's status is expired, completed/finaled,
+      closed, canceled/cancelled or withdrawn. Duplicate source rows are collapsed to the
+      most recently applied record. This is the table the map reads.
+    columns:
+      - name: permit_id
+        description: City permit number; one row per permit.
+        data_tests: [unique, not_null]
+      - name: address
+        description: Street address of the site, as published.
+      - name: description
+        description: Free-text description of the proposed work.
+      - name: work_type
+        description: >
+          One of new_building, addition_alteration, demolition, adu. ADU (description
+          mentions ADU, AADU, DADU or "accessory dwelling") wins over every other type;
+          then demolition and new building from the permit type; everything else is
+          addition_alteration.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [new_building, addition_alteration, demolition, adu]
+      - name: stage
+        description: in_review when the permit has no issued date yet, issued when it has one.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [in_review, issued]
+      - name: status_raw
+        description: Current status exactly as published by the city.
+      - name: applied_date
+        description: Date the application was accepted.
+      - name: issued_date
+        description: Date the permit was issued; null while in review.
+      - name: expires_date
+        description: Date the issued permit expires; null if not issued.
+      - name: valuation_usd
+        description: Declared estimated project cost in US dollars.
+      - name: housing_units_added
+        description: Housing units the work adds.
+      - name: housing_units_removed
+        description: Housing units the work removes.
+      - name: contractor
+        description: Contractor company on the permit; null if none listed.
+      - name: permit_url
+        description: Link to the permit's page on the city portal.
+      - name: latitude
+        description: Site latitude (WGS84), used to place the map pin.
+      - name: longitude
+        description: Site longitude (WGS84), used to place the map pin.

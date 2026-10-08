@@ -1,0 +1,104 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "neighborhood_name": "Ballard"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -122.41,
+              47.655
+            ],
+            [
+              -122.36,
+              47.655
+            ],
+            [
+              -122.36,
+              47.69
+            ],
+            [
+              -122.41,
+              47.69
+            ],
+            [
+              -122.41,
+              47.655
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "neighborhood_name": "Capitol Hill"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -122.33,
+              47.61
+            ],
+            [
+              -122.3,
+              47.61
+            ],
+            [
+              -122.3,
+              47.64
+            ],
+            [
+              -122.33,
+              47.64
+            ],
+            [
+              -122.33,
+              47.61
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "neighborhood_name": "Beacon Hill"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -122.32,
+              47.54
+            ],
+            [
+              -122.29,
+              47.54
+            ],
+            [
+              -122.29,
+              47.59
+            ],
+            [
+              -122.32,
+              47.59
+            ],
+            [
+              -122.32,
+              47.54
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

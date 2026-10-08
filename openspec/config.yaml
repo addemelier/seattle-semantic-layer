@@ -1,14 +1,11 @@
 schema: spec-driven
 
 context: |
-  Public benchmark repo: does a documented semantic layer (not the LLM) make natural-language
-  questions over a warehouse return correct answers? Data is Seattle / King County open data.
-  The human is the product manager; agents implement unattended from approved changes.
-  Read CLAUDE.md for the design-session vs. build-run split and the APPROVED / BLOCKED.md protocol.
-  Runnable target is DuckDB; Snowflake is documented parity only. Stack: Python 3.11+, dbt-core +
-  dbt-duckdb, Dagster, an MCP server. No credentials or paid services in any build step.
-  Eval reference answers are hand-written SQL committed before any model run and never tuned to output.
-  Source material: docs/product-brief.md and docs/eval-questions.md.
+  A live, shareable Redfin-style map of open Seattle building permits: search an address, see what
+  could get built nearby, click a permit for details. The dbt medallion (DuckLake) and a semantic
+  layer are built to serve the app; anonymous engagement events flow back into the same warehouse.
+  Built on Seattle open data.
+  Read CLAUDE.md for modes and the APPROVED / BLOCKED.md protocol.
 
 rules:
   proposal:

@@ -1,0 +1,39 @@
+name: permitmap
+version: "0.1.0"
+config-version: 2
+profile: permitmap
+
+model-paths: ["models"]
+test-paths: ["tests"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  permitmap:
+    +database: lake
+    staging:
+      +schema: silver
+      +materialized: table
+    gold:
+      +schema: gold
+      +materialized: table
+    utilities:
+      +schema: utilities
+      +materialized: table
+
+vars:
+  # Status sets for the "open permit" definition (design.md Build notes).
+  # Compared against lower(trim(statuscurrent)). Anything in neither set is open
+  # and reported by tests/assert_no_unknown_permit_status.sql (warn).
+  closed_statuses: [completed, expired, closed, canceled, cancelled, withdrawn]
+  known_open_statuses:
+    - application accepted
+    - reviews in process
+    - awaiting information
+    - corrections required
+    - additional info requested
+    - ready for issuance
+    - issued
+    - reviews completed
+    - scheduled
+    - inspections completed

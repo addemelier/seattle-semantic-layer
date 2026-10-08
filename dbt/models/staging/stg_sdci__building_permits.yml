@@ -1,0 +1,56 @@
+version: 2
+
+models:
+  - name: stg_sdci__building_permits
+    description: >
+      SDCI building permits with snake_case names and typed dates and numbers.
+      One row per source row; duplicates by permit number are kept here and removed in gold.
+      Values that fail to cast become null.
+    columns:
+      - name: permit_num
+        description: City permit number (source `permitnum`), trimmed.
+        data_tests: [not_null]
+      - name: permit_class
+        description: Permit class as published (e.g. Single Family/Duplex, Multifamily).
+      - name: permit_class_mapped
+        description: City's simplified permit class (e.g. Residential, Commercial).
+      - name: permit_type_mapped
+        description: City's simplified permit type (e.g. Building, Demolition).
+      - name: permit_type_desc
+        description: Permit type detail (e.g. New, Addition/Alteration, Demolition).
+      - name: description
+        description: Free-text description of the proposed work.
+      - name: housing_units_removed
+        description: Number of housing units the work removes.
+      - name: housing_units_added
+        description: Number of housing units the work adds.
+      - name: est_project_cost
+        description: Declared estimated project cost in US dollars.
+      - name: applied_date
+        description: Date the application was accepted.
+      - name: issued_date
+        description: Date the permit was issued; null if not issued yet.
+      - name: expires_date
+        description: Date the permit expires; null if not issued.
+      - name: completed_date
+        description: Date the permit was finaled/completed; null if not completed.
+      - name: status_current
+        description: Current status exactly as published.
+      - name: status_norm
+        description: Current status lower-cased and trimmed; used to classify open vs. closed.
+      - name: address_line1
+        description: Street address of the site.
+      - name: city
+        description: City of the site address.
+      - name: state
+        description: State of the site address.
+      - name: zip
+        description: ZIP code of the site address.
+      - name: contractor_company_name
+        description: Contractor company on the permit; null if none listed.
+      - name: permit_url
+        description: Link to the permit's page on the city portal.
+      - name: latitude
+        description: Site latitude (WGS84).
+      - name: longitude
+        description: Site longitude (WGS84).
