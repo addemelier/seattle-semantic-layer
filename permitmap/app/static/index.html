@@ -5,9 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Seattle permit map</title>
   <link rel="stylesheet" href="/static/vendor/maplibre-gl-4.7.1/maplibre-gl.css">
+  <link rel="stylesheet" href="/static/style.css">
   <script src="/static/vendor/maplibre-gl-4.7.1/maplibre-gl.js"></script>
 </head>
 <body>
   <div id="map"></div>
+
+  <div id="controls">
+    <div id="legend" aria-label="Legend">
+      <div class="legend-row"><span class="swatch" style="background:#D97706"></span>In review</div>
+      <div class="legend-row"><span class="swatch" style="background:#2563EB"></span>Issued</div>
+    </div>
+  </div>
+
+  <div id="status" role="status" hidden></div>
+
+  <script src="/static/app.js"></script>
 </body>
 </html>
