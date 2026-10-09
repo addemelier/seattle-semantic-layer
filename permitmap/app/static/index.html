@@ -12,6 +12,11 @@
   <div id="map"></div>
 
   <div id="controls">
+    <form id="search" role="search">
+      <input name="q" type="search" placeholder="Search a Seattle address" aria-label="Seattle address"
+             autocomplete="street-address" minlength="3" maxlength="200" required>
+      <button type="submit">Search</button>
+    </form>
     <div id="legend" aria-label="Legend">
       <div class="legend-row"><span class="swatch" style="background:#D97706"></span>In review</div>
       <div class="legend-row"><span class="swatch" style="background:#2563EB"></span>Issued</div>

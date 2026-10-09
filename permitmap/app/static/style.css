@@ -49,3 +49,12 @@ html, body { margin: 0; padding: 0; height: 100%; font-family: system-ui, -apple
   #controls { font-size: 13px; }
   #filters { gap: 10px; }
 }
+
+#search { display: flex; gap: 6px; }
+#search input { flex: 1; min-width: 0; width: 240px; padding: 6px 8px; font-size: 16px; border: 1px solid #d1d5db; border-radius: 4px; }
+#search button { padding: 6px 10px; font-size: 14px; border: 0; border-radius: 4px; background: #111827; color: #fff; cursor: pointer; }
+
+.search-marker {
+  width: 16px; height: 16px; border-radius: 50%; background: #111827;
+  border: 3px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.4);
+}

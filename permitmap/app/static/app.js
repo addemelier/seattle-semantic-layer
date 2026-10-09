@@ -7,6 +7,9 @@
   var COLORS = { in_review: "#D97706", issued: "#2563EB" };  // A8
   var MOVE_DEBOUNCE_MS = 250;
   var EMPTY = { type: "FeatureCollection", features: [] };
+  var RING_RADIUS_M = 304.8;               // 1,000 ft
+  var RING_POINTS = 64;
+  var EARTH_RADIUS_M = 6371008.8;
 
   var statusEl = document.getElementById("status");
   var messages = {};   // keyed status messages; shown joined
@@ -82,6 +85,70 @@
   };
   filtersForm.addEventListener("change", function () { if (app.refresh) app.refresh(); });
   filtersForm.addEventListener("submit", function (e) { e.preventDefault(); });
+
+  // ---- Address search -----------------------------------------------------
+  // 64-point polygon of radius r metres around [lon, lat] (equirectangular; fine at 1,000 ft).
+  function ringPolygon(lon, lat, r) {
+    var coords = [];
+    var latRad = lat * Math.PI / 180;
+    for (var i = 0; i < RING_POINTS; i++) {
+      var t = 2 * Math.PI * i / RING_POINTS;
+      var dLat = (r * Math.cos(t)) / EARTH_RADIUS_M;
+      var dLon = (r * Math.sin(t)) / (EARTH_RADIUS_M * Math.cos(latRad));
+      coords.push([lon + dLon * 180 / Math.PI, lat + dLat * 180 / Math.PI]);
+    }
+    coords.push(coords[0]);
+    return {
+      type: "FeatureCollection",
+      features: [{ type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [coords] } }]
+    };
+  }
+
+  var searchForm = document.getElementById("search");
+  var searchMarker = null;
+  var searchMsgTimer = null;
+
+  function searchMessage(text) {
+    clearTimeout(searchMsgTimer);
+    setMessage("search", text);
+    if (text) searchMsgTimer = setTimeout(function () { setMessage("search", null); }, 6000);
+  }
+  function setSearchState(s) { document.body.dataset.search = s; }
+
+  searchForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var map = window.permitMap;
+    var q = searchForm.elements.q.value.trim();
+    if (!map || q.length < 3) return;
+    searchMessage(null);
+    setSearchState("pending");
+    fetch("/api/geocode?" + new URLSearchParams({ q: q }).toString())
+      .then(function (r) {
+        if (r.status === 404) return { notFound: true };
+        if (!r.ok) throw new Error("geocoder " + r.status);
+        return r.json();
+      })
+      .then(function (res) {
+        if (res.notFound) {
+          searchMessage("Address not found in Seattle");
+          setSearchState("not_found");
+          return;
+        }
+        var lngLat = [res.lon, res.lat];
+        if (searchMarker) searchMarker.remove();
+        var el = document.createElement("div");
+        el.className = "search-marker";
+        el.setAttribute("title", res.matched_address);
+        searchMarker = new maplibregl.Marker({ element: el }).setLngLat(lngLat).addTo(map);
+        map.getSource("search-ring").setData(ringPolygon(res.lon, res.lat, RING_RADIUS_M));
+        map.once("moveend", function () { setSearchState("done"); });
+        map.flyTo({ center: lngLat, zoom: 16 });
+      })
+      .catch(function () {
+        searchMessage("Address search is unavailable right now");
+        setSearchState("unavailable");
+      });
+  });
 
   fetch("/api/config").then(function (r) { return r.json(); }).then(function (cfg) {
     var map = new maplibregl.Map({
@@ -167,6 +234,13 @@
           "circle-stroke-color": "#ffffff"
         }
       });
+      map.addSource("search-ring", { type: "geojson", data: EMPTY });
+      map.addLayer({
+        id: "search-ring",
+        type: "line",
+        source: "search-ring",
+        paint: { "line-color": "#111827", "line-width": 2 }
+      }, "permits");                        // ring under the pins so pins stay clickable
       map.on("moveend", scheduleRefresh);
       map.on("click", "permits", function (e) {
         if (!e.features || !e.features.length) return;
