@@ -9,7 +9,7 @@ Every task runs offline. Read design.md "Decisions" and "Build notes" first. In 
 
 ## 2. Permits API
 
-- [ ] 2.1 Create `permitmap/app/permits.py` with the bbox/filter parsing and query (Build notes: parameterized SQL, ordering, 2,001-row cap trick, ISO dates) and wire `GET /api/permits` in `main.py`. Write `tests/test_api_permits.py` covering every `permit-api` scenario for permits: box includes/excludes the right fixture permits; Seattle-wide box has no closed statuses; every malformed-bbox case is 400; `work_type=adu` returns only ADUs; `stage=finaled` is 400; `stage=` returns zero features; `truncated` is false on fixtures, and true when the cap is monkeypatched to 3.
+- [x] 2.1 Create `permitmap/app/permits.py` with the bbox/filter parsing and query (Build notes: parameterized SQL, ordering, 2,001-row cap trick, ISO dates) and wire `GET /api/permits` in `main.py`. Write `tests/test_api_permits.py` covering every `permit-api` scenario for permits: box includes/excludes the right fixture permits; Seattle-wide box has no closed statuses; every malformed-bbox case is 400; `work_type=adu` returns only ADUs; `stage=finaled` is 400; `stage=` returns zero features; `truncated` is false on fixtures, and true when the cap is monkeypatched to 3.
   - Verify: `python -m permitmap.load_fixture && dbt build --project-dir dbt --profiles-dir dbt -s +fct_open_permits && python -m pytest tests/test_api_permits.py -q`
 
 ## 3. Geocode API

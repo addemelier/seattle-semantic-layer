@@ -5,10 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 
 import duckdb
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from permitmap.app import permits
 from permitmap.app.config import Config
 from permitmap.lake import connect_lake
 
@@ -51,5 +52,18 @@ def create_app(config: Config | None = None) -> FastAPI:
     @app.get("/api/config")
     def api_config() -> dict:
         return {"style_url": config.style_url}
+
+    @app.get("/api/permits")
+    def api_permits(request: Request) -> JSONResponse:
+        q = request.query_params
+        try:
+            bbox = permits.parse_bbox(q.get("bbox"))
+            stages = permits.parse_list("stage", q.get("stage"), permits.STAGES)
+            work_types = permits.parse_list("work_type", q.get("work_type"), permits.WORK_TYPES)
+        except permits.BadRequest as e:
+            return JSONResponse({"error": str(e)}, status_code=400)
+        if app.state.con is None:
+            return JSONResponse({"error": "permit data is unavailable"}, status_code=503)
+        return JSONResponse(permits.query_permits(app.state.con, bbox, stages, work_types))
 
     return app
