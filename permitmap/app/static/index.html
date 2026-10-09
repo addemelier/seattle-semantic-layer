@@ -16,6 +16,20 @@
       <div class="legend-row"><span class="swatch" style="background:#D97706"></span>In review</div>
       <div class="legend-row"><span class="swatch" style="background:#2563EB"></span>Issued</div>
     </div>
+    <form id="filters" aria-label="Filters">
+      <fieldset data-param="stage">
+        <legend>Stage</legend>
+        <label><input type="checkbox" value="in_review" checked> In review</label>
+        <label><input type="checkbox" value="issued" checked> Issued</label>
+      </fieldset>
+      <fieldset data-param="work_type">
+        <legend>Work type</legend>
+        <label><input type="checkbox" value="new_building" checked> New building</label>
+        <label><input type="checkbox" value="addition_alteration" checked> Addition / alteration</label>
+        <label><input type="checkbox" value="demolition" checked> Demolition</label>
+        <label><input type="checkbox" value="adu" checked> ADU</label>
+      </fieldset>
+    </form>
   </div>
 
   <div id="status" role="status" hidden></div>

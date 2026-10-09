@@ -68,6 +68,21 @@
     setMessage: setMessage
   };
 
+  // ---- Filters ------------------------------------------------------------
+  // All boxes in a group checked -> no filter. None checked -> empty param (no pins).
+  var filtersForm = document.getElementById("filters");
+  app.permitParams = function () {
+    var params = {};
+    filtersForm.querySelectorAll("fieldset[data-param]").forEach(function (fs) {
+      var boxes = Array.prototype.slice.call(fs.querySelectorAll("input[type=checkbox]"));
+      var checked = boxes.filter(function (b) { return b.checked; }).map(function (b) { return b.value; });
+      if (checked.length < boxes.length) params[fs.getAttribute("data-param")] = checked.join(",");
+    });
+    return params;
+  };
+  filtersForm.addEventListener("change", function () { if (app.refresh) app.refresh(); });
+  filtersForm.addEventListener("submit", function (e) { e.preventDefault(); });
+
   fetch("/api/config").then(function (r) { return r.json(); }).then(function (cfg) {
     var map = new maplibregl.Map({
       container: "map",

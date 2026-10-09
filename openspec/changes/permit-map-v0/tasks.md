@@ -29,7 +29,7 @@ Every task runs offline. Read design.md "Decisions" and "Build notes" first. In 
 
 ## 6. Filters
 
-- [ ] 6.1 Add the filter control (stage and work-type checkboxes with the spec labels, all checked on load). Any change re-fetches with `stage`/`work_type` params; when every box in a group is unchecked, send the empty parameter so no pins show. Write `tests/ui/test_filters.py`: unchecking all work types but ADU leaves only rendered features with `work_type = adu` and fewer than before; unchecking "Issued" leaves only `in_review` pins; re-checking restores the original count.
+- [x] 6.1 Add the filter control (stage and work-type checkboxes with the spec labels, all checked on load). Any change re-fetches with `stage`/`work_type` params; when every box in a group is unchecked, send the empty parameter so no pins show. Write `tests/ui/test_filters.py`: unchecking all work types but ADU leaves only rendered features with `work_type = adu` and fewer than before; unchecking "Issued" leaves only `in_review` pins; re-checking restores the original count.
   - Verify: `export PW_CHROMIUM_PATH=${PW_CHROMIUM_PATH:-/opt/pw-browsers/chromium} && python -m permitmap.load_fixture && dbt build --project-dir dbt --profiles-dir dbt -s +fct_open_permits && python -m pytest tests/ui/test_filters.py -q`
 
 ## 7. Search, ring and README
