@@ -1,0 +1,17 @@
+{
+  "spatialReference": {"wkid": 4326, "latestWkid": 4326},
+  "candidates": [
+    {
+      "address": "1234 SAMPLE AVE N, SEATTLE, WA, 98109",
+      "location": {"x": -122.345678, "y": 47.634567},
+      "score": 100,
+      "attributes": {}
+    },
+    {
+      "address": "1234 SAMPLE AVE NE, SEATTLE, WA, 98105",
+      "location": {"x": -122.301234, "y": 47.661234},
+      "score": 71,
+      "attributes": {}
+    }
+  ]
+}

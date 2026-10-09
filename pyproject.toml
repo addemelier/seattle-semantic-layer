@@ -16,13 +16,19 @@ dependencies = [
     "dbt-duckdb",
     "pyarrow",
     "redis>=5",
+    "fastapi",
+    "uvicorn",
+    "httpx",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "fakeredis"]
+dev = ["pytest", "fakeredis", "playwright==1.56.0", "respx"]
 
-[tool.setuptools]
-packages = ["permitmap"]
+[tool.setuptools.packages.find]
+include = ["permitmap*"]
+
+[tool.setuptools.package-data]
+"permitmap.app" = ["static/**/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
