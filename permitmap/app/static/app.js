@@ -22,6 +22,45 @@
   function setPinsState(s) { document.body.dataset.permits = s; }
   setPinsState("loading");
 
+  // ---- Detail panel -------------------------------------------------------
+  var WORK_TYPE_LABELS = {
+    new_building: "New building", addition_alteration: "Addition / alteration",
+    demolition: "Demolition", adu: "ADU"
+  };
+  var STAGE_LABELS = { in_review: "In review", issued: "Issued" };
+  var usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+  var panel = document.getElementById("permit-panel");
+
+  function present(v) { return v !== null && v !== undefined && v !== ""; }
+
+  function panelText(field, p) {
+    var v = p[field];
+    switch (field) {
+      case "valuation_usd": return present(v) ? usd.format(Number(v)) : "Not stated";
+      case "contractor": return present(v) ? v : "Not listed";
+      case "work_type": return WORK_TYPE_LABELS[v] || v || "";
+      case "stage": return STAGE_LABELS[v] || v || "";
+      default: return present(v) ? String(v) : "\u2014";
+    }
+  }
+
+  function openPanel(p) {
+    panel.querySelectorAll("[data-field]").forEach(function (el) {
+      var field = el.getAttribute("data-field");
+      el.textContent = (field === "description" && !present(p.description)) ? "" : panelText(field, p);
+    });
+    panel.setAttribute("aria-label", p.address || "Permit details");
+    var link = panel.querySelector(".panel-link");
+    if (present(p.permit_url)) { link.href = p.permit_url; link.hidden = false; }
+    else { link.removeAttribute("href"); link.hidden = true; }
+    panel.dataset.permitId = p.permit_id;
+    panel.hidden = false;
+  }
+
+  function closePanel() { panel.hidden = true; delete panel.dataset.permitId; }
+  panel.querySelector(".panel-close").addEventListener("click", closePanel);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closePanel(); });
+
   var app = window.permitApp = {
     // Extra query params for /api/permits (filters set these).
     permitParams: function () { return {}; },
@@ -114,6 +153,17 @@
         }
       });
       map.on("moveend", scheduleRefresh);
+      map.on("click", "permits", function (e) {
+        if (!e.features || !e.features.length) return;
+        var id = e.features[0].properties.permit_id;
+        // Use the API's feature (keeps nulls exactly) rather than the tiled copy.
+        var full = (app.lastPermits ? app.lastPermits.features : []).filter(function (f) {
+          return f.properties.permit_id === id;
+        })[0];
+        openPanel(full ? full.properties : e.features[0].properties);
+      });
+      map.on("mouseenter", "permits", function () { map.getCanvas().style.cursor = "pointer"; });
+      map.on("mouseleave", "permits", function () { map.getCanvas().style.cursor = ""; });
       if (app.onLoad) app.onLoad(map);
       refresh();
     });

@@ -20,6 +20,24 @@
 
   <div id="status" role="status" hidden></div>
 
+  <aside id="permit-panel" role="dialog" aria-label="Permit details" hidden>
+    <button type="button" class="panel-close" aria-label="Close">&times;</button>
+    <h2 class="panel-address" data-field="address"></h2>
+    <p class="panel-description" data-field="description"></p>
+    <dl>
+      <dt>Work type</dt><dd data-field="work_type"></dd>
+      <dt>Stage</dt><dd data-field="stage"></dd>
+      <dt>Applied</dt><dd data-field="applied_date"></dd>
+      <dt>Issued</dt><dd data-field="issued_date"></dd>
+      <dt>Expires</dt><dd data-field="expires_date"></dd>
+      <dt>Valuation</dt><dd data-field="valuation_usd"></dd>
+      <dt>Housing units added</dt><dd data-field="housing_units_added"></dd>
+      <dt>Housing units removed</dt><dd data-field="housing_units_removed"></dd>
+      <dt>Contractor</dt><dd data-field="contractor"></dd>
+    </dl>
+    <a class="panel-link" target="_blank" rel="noopener">View on the city's permit site</a>
+  </aside>
+
   <script src="/static/app.js"></script>
 </body>
 </html>
