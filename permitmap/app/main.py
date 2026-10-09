@@ -5,11 +5,12 @@ from __future__ import annotations
 from pathlib import Path
 
 import duckdb
+import httpx
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from permitmap.app import permits
+from permitmap.app import geocode, permits
 from permitmap.app.config import Config
 from permitmap.lake import connect_lake
 
@@ -65,5 +66,21 @@ def create_app(config: Config | None = None) -> FastAPI:
         if app.state.con is None:
             return JSONResponse({"error": "permit data is unavailable"}, status_code=503)
         return JSONResponse(permits.query_permits(app.state.con, bbox, stages, work_types))
+
+    @app.get("/api/geocode")
+    async def api_geocode(q: str | None = None) -> JSONResponse:
+        q = (q or "").strip()
+        if not 3 <= len(q) <= 200:
+            return JSONResponse({"error": "q must be 3-200 characters"}, status_code=400)
+        try:
+            async with httpx.AsyncClient() as client:
+                match = await geocode.geocode(client, config.geocoder_url, q)
+        except geocode.GeocoderUnavailable:
+            return JSONResponse({"error": "address search is unavailable right now"},
+                                status_code=502)
+        if match is None:
+            return JSONResponse({"error": "address not found in Seattle"}, status_code=404)
+        return JSONResponse({"lat": match.lat, "lon": match.lon,
+                             "matched_address": match.matched_address, "score": match.score})
 
     return app

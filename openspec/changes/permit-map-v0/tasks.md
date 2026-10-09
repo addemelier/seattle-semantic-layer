@@ -14,7 +14,7 @@ Every task runs offline. Read design.md "Decisions" and "Build notes" first. In 
 
 ## 3. Geocode API
 
-- [ ] 3.1 Create `permitmap/app/geocode.py` (`async def geocode(client, url, q) -> Match | None`, raising a `GeocoderUnavailable` error on timeout/HTTP error/ArcGIS error body/malformed JSON) and wire `GET /api/geocode` in `main.py`. Create the synthetic `tests/fixtures/geocoder_candidates_sample.json` (two candidates, scores 100 and 71, inside Seattle) and note it in `tests/fixtures/README.md`. Write `tests/test_api_geocode.py` with `respx`: good match → 200 with lat/lon/matched_address/score and the request carried `SingleLine`, `outSR=4326`, `f=json`; best score 62 → 404; no candidates → 404; timeout → 502; ArcGIS `{"error": ...}` body → 502; `q` of 2 chars or 201 chars → 400.
+- [x] 3.1 Create `permitmap/app/geocode.py` (`async def geocode(client, url, q) -> Match | None`, raising a `GeocoderUnavailable` error on timeout/HTTP error/ArcGIS error body/malformed JSON) and wire `GET /api/geocode` in `main.py`. Create the synthetic `tests/fixtures/geocoder_candidates_sample.json` (two candidates, scores 100 and 71, inside Seattle) and note it in `tests/fixtures/README.md`. Write `tests/test_api_geocode.py` with `respx`: good match → 200 with lat/lon/matched_address/score and the request carried `SingleLine`, `outSR=4326`, `f=json`; best score 62 → 404; no candidates → 404; timeout → 502; ArcGIS `{"error": ...}` body → 502; `q` of 2 chars or 201 chars → 400.
   - Verify: `python -m permitmap.load_fixture && dbt build --project-dir dbt --profiles-dir dbt -s +fct_open_permits && python -m pytest tests/test_api_geocode.py -q`
 
 ## 4. Map and pins

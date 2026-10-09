@@ -6,3 +6,4 @@
 - `neighborhoods_sample.geojson` has three rectangular polygons (Ballard, Capitol Hill, Beacon Hill) with a `neighborhood_name` property. They are rough boxes, not real boundaries.
 
 These fixtures drive every build-time verification, so builds never touch the network.
+- `geocoder_candidates_sample.json` imitates an ArcGIS `findAddressCandidates` response from the City of Seattle address locator: two invented candidates inside Seattle, scores 100 and 71. It is synthetic; the addresses are made up. Tests stub the locator's HTTP call with it and never use the network.
