@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Seattle permit map</title>
+  <link rel="stylesheet" href="/static/vendor/maplibre-gl-4.7.1/maplibre-gl.css">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/vendor/maplibre-gl-4.7.1/maplibre-gl.js"></script>
+</head>
+<body>
+  <div id="map"></div>
+
+  <div id="controls">
+    <form id="search" role="search">
+      <input name="q" type="search" placeholder="Search a Seattle address" aria-label="Seattle address"
+             autocomplete="street-address" minlength="3" maxlength="200" required>
+      <button type="submit">Search</button>
+    </form>
+    <div id="legend" aria-label="Legend">
+      <div class="legend-row"><span class="swatch" style="background:#D97706"></span>In review</div>
+      <div class="legend-row"><span class="swatch" style="background:#2563EB"></span>Issued</div>
+    </div>
+    <form id="filters" aria-label="Filters">
+      <fieldset data-param="stage">
+        <legend>Stage</legend>
+        <label><input type="checkbox" value="in_review" checked> In review</label>
+        <label><input type="checkbox" value="issued" checked> Issued</label>
+      </fieldset>
+      <fieldset data-param="work_type">
+        <legend>Work type</legend>
+        <label><input type="checkbox" value="new_building" checked> New building</label>
+        <label><input type="checkbox" value="addition_alteration" checked> Addition / alteration</label>
+        <label><input type="checkbox" value="demolition" checked> Demolition</label>
+        <label><input type="checkbox" value="adu" checked> ADU</label>
+      </fieldset>
+    </form>
+  </div>
+
+  <div id="status" role="status" hidden></div>
+
+  <aside id="permit-panel" role="dialog" aria-label="Permit details" hidden>
+    <button type="button" class="panel-close" aria-label="Close">&times;</button>
+    <h2 class="panel-address" data-field="address"></h2>
+    <p class="panel-description" data-field="description"></p>
+    <dl>
+      <dt>Work type</dt><dd data-field="work_type"></dd>
+      <dt>Stage</dt><dd data-field="stage"></dd>
+      <dt>Applied</dt><dd data-field="applied_date"></dd>
+      <dt>Issued</dt><dd data-field="issued_date"></dd>
+      <dt>Expires</dt><dd data-field="expires_date"></dd>
+      <dt>Valuation</dt><dd data-field="valuation_usd"></dd>
+      <dt>Housing units added</dt><dd data-field="housing_units_added"></dd>
+      <dt>Housing units removed</dt><dd data-field="housing_units_removed"></dd>
+      <dt>Contractor</dt><dd data-field="contractor"></dd>
+    </dl>
+    <a class="panel-link" target="_blank" rel="noopener">View on the city's permit site</a>
+  </aside>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
