@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from pathlib import Path
 
 import duckdb
@@ -11,6 +12,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from permitmap.app import geocode, permits
+from permitmap.app.freshness import data_freshness
 from permitmap.app.config import Config
 from permitmap.lake import connect_lake
 
@@ -32,6 +34,14 @@ def create_app(config: Config | None = None) -> FastAPI:
     app = FastAPI(title="Seattle permit map")
     app.state.config = config
     app.state.con = _open_lake(config)
+    app.state.now = lambda: datetime.now(timezone.utc)  # replaced in tests
+
+    def freshness() -> dict:
+        con = app.state.con
+        if con is None:
+            return {"data_as_of": None, "data_fresh": None}
+        as_of, fresh = data_freshness(con.cursor(), app.state.now())
+        return {"data_as_of": as_of, "data_fresh": fresh}
 
     app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
@@ -48,11 +58,12 @@ def create_app(config: Config | None = None) -> FastAPI:
             con.cursor().execute("SELECT 1 FROM lake.gold.fct_open_permits LIMIT 1").fetchall()
         except duckdb.Error:
             return JSONResponse({"status": "unavailable"}, status_code=503)
-        return JSONResponse({"status": "ok"})
+        # Stale data is still healthy (design A2): report it, don't fail.
+        return JSONResponse({"status": "ok", **freshness()})
 
     @app.get("/api/config")
     def api_config() -> dict:
-        return {"style_url": config.style_url}
+        return {"style_url": config.style_url, **freshness()}
 
     @app.get("/api/permits")
     def api_permits(request: Request) -> JSONResponse:
