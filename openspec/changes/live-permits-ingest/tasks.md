@@ -14,7 +14,7 @@ Every task runs offline; tests mock every HTTP call. Read design.md "Decisions" 
 
 ## 3. One-shot pipeline and CLI
 
-- [ ] 3.1 Create `permitmap/ingest/pipeline.py` (`run_ingest`, `RunResult`, `IngestRejected`; logs every run to `ingest_runs` per Build notes) and `permitmap/ingest/__main__.py` (runs the pipeline then dbt via `dbtRunner`, exit codes per Build notes). Write `tests/test_ingest_pipeline.py` with `respx` serving the fixture CSV as pages on a temp lake: a run ends with `ingest_runs` holding one `accepted` row and `lake.gold.fct_open_permits` having the same row count as after `load_fixture`; a follow-up run whose mock returns a 500 on every attempt is logged `rejected` with a `fetch failed:` reason and leaves gold's row count unchanged; the CLI returns exit code 1 in that case.
+- [x] 3.1 Create `permitmap/ingest/pipeline.py` (`run_ingest`, `RunResult`, `IngestRejected`; logs every run to `ingest_runs` per Build notes) and `permitmap/ingest/__main__.py` (runs the pipeline then dbt via `dbtRunner`, exit codes per Build notes). Write `tests/test_ingest_pipeline.py` with `respx` serving the fixture CSV as pages on a temp lake: a run ends with `ingest_runs` holding one `accepted` row and `lake.gold.fct_open_permits` having the same row count as after `load_fixture`; a follow-up run whose mock returns a 500 on every attempt is logged `rejected` with a `fetch failed:` reason and leaves gold's row count unchanged; the CLI returns exit code 1 in that case.
   - Verify: `python -m permitmap.load_fixture && dbt build --project-dir dbt --profiles-dir dbt -s +fct_open_permits && python -m pytest tests/test_ingest_pipeline.py -q`
 
 ## 4. Dagster job and schedule
