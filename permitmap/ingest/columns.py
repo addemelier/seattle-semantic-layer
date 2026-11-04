@@ -1,0 +1,26 @@
+"""Source columns the staging model reads; a pull missing any of them is rejected."""
+
+REQUIRED_COLUMNS: tuple[str, ...] = (
+    "permitnum",
+    "permitclass",
+    "permitclassmapped",
+    "permittypemapped",
+    "permittypedesc",
+    "description",
+    "housingunitsremoved",
+    "housingunitsadded",
+    "estprojectcost",
+    "applieddate",
+    "issueddate",
+    "expiresdate",
+    "completeddate",
+    "statuscurrent",
+    "originaladdress1",
+    "originalcity",
+    "originalstate",
+    "originalzip",
+    "contractorcompanyname",
+    "link",
+    "latitude",
+    "longitude",
+)
