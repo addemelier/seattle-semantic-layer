@@ -19,6 +19,11 @@ dependencies = [
     "fastapi",
     "uvicorn",
     "httpx",
+    "dagster==1.13.28",
+    "dagster-dbt==0.29.28",
+    "dagster-webserver==1.13.28",
+    # dagster pulls grpcio-health-checking; 1.82+ needs protobuf 7, dbt needs protobuf 6.
+    "grpcio-health-checking<1.82",
 ]
 
 [project.optional-dependencies]

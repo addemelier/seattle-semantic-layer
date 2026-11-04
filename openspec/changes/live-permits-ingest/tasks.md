@@ -19,7 +19,7 @@ Every task runs offline; tests mock every HTTP call. Read design.md "Decisions" 
 
 ## 4. Dagster job and schedule
 
-- [ ] 4.1 Add `dagster`, `dagster-dbt`, `dagster-webserver` to `pyproject.toml` (exact versions, Build notes). Create `permitmap/orchestration/__init__.py` and `permitmap/orchestration/definitions.py` (asset, dbt assets, job, schedule per Build notes). Write `tests/test_orchestration.py`: `defs` loads; the schedule has cron `0 5 * * *` in `America/Los_Angeles`; the job contains the bronze asset and `fct_open_permits`, with the bronze asset upstream; materializing the job with the HTTP call mocked (fixture pages) succeeds and writes an `accepted` row to `ingest_runs` on a temp lake.
+- [x] 4.1 Add `dagster`, `dagster-dbt`, `dagster-webserver` to `pyproject.toml` (exact versions, Build notes). Create `permitmap/orchestration/__init__.py` and `permitmap/orchestration/definitions.py` (asset, dbt assets, job, schedule per Build notes). Write `tests/test_orchestration.py`: `defs` loads; the schedule has cron `0 5 * * *` in `America/Los_Angeles`; the job contains the bronze asset and `fct_open_permits`, with the bronze asset upstream; materializing the job with the HTTP call mocked (fixture pages) succeeds and writes an `accepted` row to `ingest_runs` on a temp lake.
   - Verify: `pip install -e '.[dev]' && dbt parse --project-dir dbt --profiles-dir dbt && dagster definitions validate -m permitmap.orchestration.definitions && python -m pytest tests/test_orchestration.py -q`
 
 ## 5. Freshness in the API
