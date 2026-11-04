@@ -24,7 +24,7 @@ Every task runs offline; tests mock every HTTP call. Read design.md "Decisions" 
 
 ## 5. Freshness in the API
 
-- [ ] 5.1 Create `permitmap/app/freshness.py` (`data_freshness(cursor, now) -> (data_as_of, data_fresh)`, Build notes) and extend `/api/config` and `/healthz` in `permitmap/app/main.py` per the `permit-api` delta. Write `tests/test_api_freshness.py`: fixture lake → `data_as_of` and `data_fresh` null and `/healthz` 200; an `accepted` run 2 hours before the injected now → `data_fresh: true` and the ISO timestamp; one 40 hours before → `data_fresh: false` and `/healthz` still 200; a newer `rejected` run doesn't change `data_as_of`. Keep `tests/test_app_basics.py` passing.
+- [x] 5.1 Create `permitmap/app/freshness.py` (`data_freshness(cursor, now) -> (data_as_of, data_fresh)`, Build notes) and extend `/api/config` and `/healthz` in `permitmap/app/main.py` per the `permit-api` delta. Write `tests/test_api_freshness.py`: fixture lake → `data_as_of` and `data_fresh` null and `/healthz` 200; an `accepted` run 2 hours before the injected now → `data_fresh: true` and the ISO timestamp; one 40 hours before → `data_fresh: false` and `/healthz` still 200; a newer `rejected` run doesn't change `data_as_of`. Keep `tests/test_app_basics.py` passing.
   - Verify: `python -m permitmap.load_fixture && dbt build --project-dir dbt --profiles-dir dbt -s +fct_open_permits && python -m pytest tests/test_api_freshness.py tests/test_app_basics.py -q`
 
 ## 6. Freshness label and README

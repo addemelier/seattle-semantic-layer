@@ -12,6 +12,7 @@ DEFAULT_GEOCODER_URL = (
     "https://gisdata.seattle.gov/cosgis/rest/services/locators/MultiRoles/"
     "GeocodeServer/findAddressCandidates"
 )
+STALE_AFTER_HOURS = 36  # data older than this is shown as "may be out of date"
 DEFAULT_SOCRATA_URL = "https://cos-data.seattle.gov/resource/76t5-zqzr.csv"
 
 
