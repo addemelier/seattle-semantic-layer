@@ -6,11 +6,12 @@ from pathlib import Path
 
 import duckdb
 import httpx
+import redis
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from permitmap.app import geocode, permits
+from permitmap.app import events_api, geocode, permits
 from permitmap.app.config import Config
 from permitmap.lake import connect_lake
 
@@ -27,11 +28,22 @@ def _open_lake(config: Config) -> duckdb.DuckDBPyConnection | None:
         return None
 
 
-def create_app(config: Config | None = None) -> FastAPI:
+def _redis_client(config: Config, redis_client):
+    if redis_client is not None:
+        return redis_client
+    if config.redis_url:
+        # Created once, connects lazily; short timeouts so a down Redis answers 503 fast (A4).
+        return redis.Redis.from_url(config.redis_url, socket_connect_timeout=0.5,
+                                    socket_timeout=0.5)
+    return None
+
+
+def create_app(config: Config | None = None, redis_client=None) -> FastAPI:
     config = config or Config.from_env()
     app = FastAPI(title="Seattle permit map")
     app.state.config = config
     app.state.con = _open_lake(config)
+    app.state.redis = _redis_client(config, redis_client)
 
     app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
@@ -83,4 +95,5 @@ def create_app(config: Config | None = None) -> FastAPI:
         return JSONResponse({"lat": match.lat, "lon": match.lon,
                              "matched_address": match.matched_address, "score": match.score})
 
+    events_api.register(app)
     return app

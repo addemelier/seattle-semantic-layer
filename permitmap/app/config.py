@@ -22,6 +22,8 @@ class Config:
     geocoder_url: str = DEFAULT_GEOCODER_URL
     host: str = "127.0.0.1"
     port: int = 8000
+    redis_url: str | None = None  # events are disabled when unset
+    trust_proxy: bool = False  # use the left-most X-Forwarded-For address as the client IP
 
     @classmethod
     def from_env(cls, env: dict[str, str] | None = None) -> "Config":
@@ -33,4 +35,6 @@ class Config:
             geocoder_url=env.get("PERMITMAP_GEOCODER_URL", DEFAULT_GEOCODER_URL),
             host=env.get("PERMITMAP_HOST", "127.0.0.1"),
             port=int(env.get("PERMITMAP_PORT", "8000")),
+            redis_url=env.get("REDIS_URL") or None,
+            trust_proxy=env.get("PERMITMAP_TRUST_PROXY") == "1",
         )
