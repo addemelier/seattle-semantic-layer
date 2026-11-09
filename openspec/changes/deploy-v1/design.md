@@ -14,7 +14,7 @@ The build sandbox reaches PyPI and npm but not Docker Hub, Socrata or any server
 
 ## Goals / Non-Goals
 
-**Goals:** the PM creates a server, points Coolify at the repo, sets one secret and gets a public map with real permits that refreshes every morning, captures events, and redeploys itself on merge.
+**Goals:** the PM installs Coolify on his Pi, connects a Cloudflare Tunnel, points Coolify at the repo, sets one secret and gets a public map with real permits that refreshes every morning, captures events, and redeploys itself on merge.
 
 **Non-goals:** see the proposal's "Out of scope".
 
@@ -22,10 +22,11 @@ The build sandbox reaches PyPI and npm but not Docker Hub, Socrata or any server
 
 | # | Decision | Reason |
 |---|---|---|
-| D1 | **Coolify-generated address for v1**, no custom domain. Coolify handles HTTPS. (2026-11-05) | Quickest; a domain can come later. |
+| D1 | **A domain on Cloudflare (~$10/yr), reached through a Cloudflare Tunnel.** Supersedes the 2026-11-05 "Coolify-generated address" decision once the host moved to the Pi (D7). Cloudflare handles HTTPS. (2026-11-08) | A Pi at home has no public IP; a tunnel gives a stable public link with no router ports opened, and a stable link needs a domain. |
 | D2 | **Dagster UI private**, reachable only through an SSH tunnel. (2026-11-05) | Nothing exposed, no password to manage; keeps a later move to a Pi or Dagster Cloud open. |
 | D3 | **No backups for v1.** Event backups are a later add-on. (2026-11-05) | Simplest. Permit data can be re-pulled. |
-| D7 | **Host on a Contabo Cloud VPS 10 in Seattle (x86, 4 vCPU, 8 GB)** instead of a Hetzner ARM server. (2026-11-08) | Hetzner's CAX/CX plans have been unorderable since September and its next option is about €20/month; Contabo is about €5, closest to the PM and has double the RAM. The image stays multi-arch, so a later move to a Pi is unchanged. |
+| D7 | **Host v1 on the PM's Raspberry Pi 5 (8 GB, arm64) at home**, running Coolify, starting on its 128 GB microSD card. (2026-11-08) | $0/month on hardware he owns, and it's the planned end state anyway. Replaces the Hetzner ARM VPS (unorderable) and the Contabo VPS considered the same evening. |
+| D8 | **Add an NVMe SSD to the Pi later**, not before v1. (2026-11-08) | SD cards wear under daily rewrites, but permit data can be re-pulled; only engagement events are at risk (D3). |
 | D4 | **Redeploy automatically on every merge to main** (Coolify auto-deploy). (2026-11-05) | Simplest. Accepted risk: a bad merge goes straight live. |
 | D5 | **The first real pull runs automatically** when the Dagster daemon starts and the lake has never had an accepted run. (2026-11-08) | Real data minutes after the first deploy, with no terminal step. Replaces the manual first run in the voice notes. |
 | D6 | **No scheduled event drain yet.** Events stay in Redis (append-only file on its volume, stream capped at about 1 million entries by `record_event`). (2026-11-08) | Keeps this change to deployment; draining is a later change. |
@@ -44,7 +45,8 @@ The build sandbox reaches PyPI and npm but not Docker Hub, Socrata or any server
 | A8 | **The app re-tries opening the lake on each request until it opens**, then keeps that connection. | Fixes the fresh-server gap without a restart. |
 | A9 | **Bootstrap failures never stop the daemon.** The bootstrap logs and exits 0 whatever happens. | A bad first pull must not leave the schedule off. |
 | A10 | **The image runs as a non-root user** (`app`, uid 10001) that owns `/data`. | Basic container hygiene. |
-| A11 | **No ports are published for the app**; it `expose`s 8000 and Coolify's proxy routes the generated address to it. | Coolify assigns the address per service in its UI (D1). |
+| A11 | **No ports are published for the app**; it `expose`s 8000. The Cloudflare Tunnel (Coolify's one-click `cloudflared` service, configured outside the repo) sends a wildcard hostname to Coolify's proxy, which routes the app's domain to it. | Keeps the Compose file host-agnostic: the same file runs on a VPS without a tunnel. |
+| A12 | **Auto-deploy through the tunnel:** Coolify's own address is a tunnel hostname so GitHub's webhooks reach it; the dashboard is protected by Cloudflare Access (free) with a bypass only for Coolify's webhook path. | Keeps D4 without exposing the dashboard. |
 
 ## Build notes (for the builder; decisions already made)
 
@@ -72,20 +74,25 @@ The build sandbox reaches PyPI and npm but not Docker Hub, Socrata or any server
   - `redis`: `image: redis:8-alpine`, `command: ["redis-server", "--appendonly", "yes"]`, volume `redis_data:/data`, `restart: unless-stopped`, no `ports`.
   - `volumes: lake: {}, redis_data: {}, dagster_home: {}`.
 - **Structure tests** in `tests/test_deploy_files.py` with `yaml.safe_load` (PyYAML ships with dbt): exactly the four services; only `dagster-webserver` has `ports` and each starts with `127.0.0.1:`; `redis` and `app` have none; `app` has `expose` 8000 and a healthcheck whose command contains `/api/config`; `EVENT_IP_SALT` in `app` uses the `:?` form; every Python service mounts `lake:/data/lake`; daemon and webserver mount `dagster_home:/data/dagster`; `redis` runs with `--appendonly yes` and mounts `redis_data`; the three volumes are declared; no literal value for `EVENT_IP_SALT` appears anywhere in the repo outside tests. Dockerfile: base image is `python:3.11-slim-bookworm`, has a `USER` line not root, runs `dbt parse`, sets the four `ENV` paths. `deploy/workspace.yaml` loads `permitmap.orchestration.definitions`. `deploy/dagster.yaml` uses sqlite storage under `/data/dagster` and telemetry off. Entry scripts end with `exec dagster-daemon run` / `exec dagster-webserver` and the daemon script runs `permitmap.deploy.bootstrap` first.
-- **README "Deploy" section** — the PM's steps, in this order:
-  1. Order a Contabo Cloud VPS 10 in US West (Seattle) with Ubuntu 24.04 (about €5.45/month), add your SSH key, then on the server allow ports 22, 80, 443, 8000, 6001 and 6002 with `ufw`.
-  2. Install Coolify with its one-line installer from coolify.io, open its dashboard on port 8000 of the server and create the admin account.
-  3. In Coolify: add a resource from your GitHub repo using the Docker Compose build pack (`docker-compose.yml`).
-  4. Set `EVENT_IP_SALT` in the resource's environment variables to a long random string (`openssl rand -hex 32`).
-  5. On the `app` service, use the generated address (HTTPS is automatic); leave the other services without one.
-  6. Turn on automatic deployment on push to `main`, then deploy. Within a few minutes the map shows "Permits as of" today.
-  7. Dagster UI: `ssh -L 3000:127.0.0.1:3000 root@<server-ip>`, then open `http://localhost:3000`.
-  8. If the first pull is rejected, the Dagster daemon log and `lake.bronze.ingest_runs` show the reason (missing columns list what Socrata sent).
-  Also note: no backups yet (D3), and moving to a Pi is the same Compose file with the three volumes copied over.
+- **README "Deploy" section** — the PM's steps for the Raspberry Pi, in this order:
+  1. Check the Pi runs 64-bit Raspberry Pi OS (`uname -m` prints `aarch64`), update it, and give it a fixed address on your router.
+  2. Install Coolify with its one-line installer (coolify.io docs); open `http://<pi-lan-ip>:8000` from your home network and create the admin account immediately.
+  3. Buy a domain (or move one) to Cloudflare. In Cloudflare: Networking → Tunnels → Create tunnel, choose Docker, copy only the token.
+  4. In Coolify: + New → search "Cloudflared" → paste the token as its environment variable → deploy. In Cloudflare, add a route: subdomain `*`, your domain, service `http://localhost:80` (use `http://127.0.0.1:80` if that fails).
+  5. Coolify dashboard and auto-deploy: in Coolify Settings set the instance domain to `https://coolify.<domain>`. In Cloudflare Zero Trust → Access, add an application for `coolify.<domain>` allowing only your email, and a second one for `coolify.<domain>/webhooks` with a Bypass policy so GitHub can reach it.
+  6. In Coolify: Sources → GitHub App (install on this repo only), then + New Resource from the repo, build pack Docker Compose, `docker-compose.yml`.
+  7. Set `EVENT_IP_SALT` (`openssl rand -hex 32`) in the resource's environment variables.
+  8. On the `app` service set the domain to `https://map.<domain>`, set "Redirect HTTP to HTTPS" to Disabled (the tunnel reaches Coolify over HTTP; leaving it on causes too many redirects), turn on auto-deploy, and deploy. Within minutes the map shows "Permits as of" today.
+  9. Dagster UI: from your home network, `ssh -L 3000:127.0.0.1:3000 <user>@<pi-lan-ip>` then `http://localhost:3000`.
+  10. If the first pull is rejected, the Dagster daemon log and `lake.bronze.ingest_runs` show the reason (missing columns list what Socrata sent).
+  Also note: no backups yet (D3); the Pi boots from its SD card for now (D8); moving to a VPS later is the same Compose file without the tunnel, with the three volumes copied over.
 
 ## Risks
 
+- **Home hosting.** A power or internet outage at home takes the map down and can skip a 5:00am refresh; the next schedule or a manual run catches up. The SD card can fail under daily writes (D8).
+- **Tunnel and Access settings live in Cloudflare and Coolify, not the repo.** The README is the only record of them.
+
 - **No container is built or run in the build.** Docker Hub isn't reachable from the builder, so the first real build happens on the server. The structure tests and the arm64 wheel check cover the likely failures; anything else shows up in Coolify's build log on the first deploy.
 - **Shared SQLite catalog across containers.** The app reads while the daemon writes, through the same volume on one host, which SQLite's locking supports. The cross-process test covers visibility; a long nightly write could make a request wait briefly.
-- **Coolify version details** (variable UI, how ports and the generated address are set) may differ from the README; the Compose file uses only standard Compose features.
+- **Coolify version details** (variable UI, the cloudflared service, instance domain settings) may differ from the README; the Compose file uses only standard Compose features.
 - **Auto-deploy (D4)** rebuilds on every merge, including during the 5:00am pull. A redeploy then interrupts that run; the guarded swap keeps yesterday's data, and the next schedule or a manual run from the Dagster UI retries.

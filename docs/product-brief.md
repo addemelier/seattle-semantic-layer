@@ -18,7 +18,7 @@ A neighbor or homebuyer, and specifically the PM himself. Every design choice is
 
 The PM sends a friend a URL. They search an address, see open permits on a map, click one and get details. Permit data refreshes daily with no manual step, and engagement events are captured live.
 
-Post-v1: Raspberry Pi migration, accounts, alerts.
+Post-v1: an SSD for the Pi, accounts, alerts.
 
 ## Data
 
@@ -41,7 +41,7 @@ App events → Redis 8 Stream (events:v1) → drain → Parquet landing → Duck
 
 - Storage: DuckLake with a SQLite catalog, via DuckDB. No Postgres.
 - Redis 8: live event inbox (stream + consumer group) and, later, an API response cache.
-- Hosting: one Contabo VPS (Seattle) running Coolify, the whole stack in one Docker Compose file; later the same setup on a Raspberry Pi. Budget $15–20/mo.
+- Hosting: the PM's Raspberry Pi 5 at home running Coolify, public through a Cloudflare Tunnel, the whole stack in one Docker Compose file. Budget: a ~$10/yr domain; a VPS remains an option.
 
 ## Out of scope for v1
 
