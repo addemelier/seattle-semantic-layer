@@ -41,7 +41,7 @@ App events → Redis 8 Stream (events:v1) → drain → Parquet landing → Duck
 
 - Storage: DuckLake with a SQLite catalog, via DuckDB. No Postgres.
 - Redis 8: live event inbox (stream + consumer group) and, later, an API response cache.
-- Hosting: one Hetzner ARM VPS running Coolify, the whole stack in one Docker Compose file; later the same setup on a Raspberry Pi. Budget $15–20/mo.
+- Hosting: one Contabo VPS (Seattle) running Coolify, the whole stack in one Docker Compose file; later the same setup on a Raspberry Pi. Budget $15–20/mo.
 
 ## Out of scope for v1
 

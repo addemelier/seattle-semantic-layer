@@ -2,7 +2,7 @@
 
 ## Why
 
-Everything v1 needs is built and merged: the map, the nightly ingest with freshness, and engagement events. It all still runs only on a laptop with sample data. v1 (target 2026-11-13) is "the PM sends a friend a URL." This change packages the stack so Coolify on one Hetzner ARM server can run it, pull real permits on its own, and redeploy on every merge.
+Everything v1 needs is built and merged: the map, the nightly ingest with freshness, and engagement events. It all still runs only on a laptop with sample data. v1 (target 2026-11-13) is "the PM sends a friend a URL." This change packages the stack so Coolify on one Contabo server (Seattle) can run it, pull real permits on its own, and redeploy on every merge.
 
 ## What Changes
 
@@ -29,7 +29,7 @@ Everything v1 needs is built and merged: the map, the nightly ingest with freshn
 - New files: `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `deploy/dagster.yaml`, `deploy/workspace.yaml`, `deploy/entrypoint-daemon.sh`, `permitmap/deploy/` (bootstrap and wheel check).
 - Small change to `permitmap/app/main.py`.
 - Secrets live only in Coolify: `EVENT_IP_SALT` is required.
-- Manual PM steps (builders never touch hosting accounts): create the server, install Coolify, add the repo, set the secret, assign the address, turn on auto-deploy.
+- Manual PM steps (builders never touch hosting accounts): create the Contabo server, install Coolify, add the repo, set the secret, assign the address, turn on auto-deploy.
 
 ## Out of scope (later changes)
 

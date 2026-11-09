@@ -49,7 +49,7 @@ Triggered on a schedule. No human is watching. Do not ask questions; there is no
 
 - **Storage:** DuckLake (SQLite catalog) via DuckDB. No Postgres.
 - **Stack:** Python 3.11+, dbt-core + dbt-duckdb, Dagster OSS, FastAPI, MapLibre front end, Redis 8 (event stream + cache). One Docker Compose file, arm64 and amd64.
-- **Hosting:** Hetzner ARM VPS with Coolify; later a Raspberry Pi. Budget ≤ $20/mo. Builders never touch hosting accounts or credentials.
+- **Hosting:** Contabo Cloud VPS 10 (Seattle, x86) with Coolify; later a Raspberry Pi. Images stay multi-arch (arm64 and amd64). Budget ≤ $20/mo. Builders never touch hosting accounts or credentials.
 - **Data:** Seattle Open Data via Socrata (SODA) only, refreshed daily by Dagster on the server. Ingest is idempotent and quarantines malformed rows. Build-time verification uses committed fixtures in `tests/fixtures/`, never the network.
 - **Engagement data:** anonymous; never store raw IPs; never commit event data.
 - **User:** the PM, as a neighbor or homebuyer. When in doubt, ask "would he use this when looking at a house?"
