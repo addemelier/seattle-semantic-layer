@@ -40,6 +40,16 @@ def _redis_client(config: Config, redis_client):
     return None
 
 
+def get_con(app: FastAPI) -> duckdb.DuckDBPyConnection | None:
+    """The lake connection, opened on first use once the catalog exists (design A8)."""
+    con = app.state.con
+    if con is None:
+        con = _open_lake(app.state.config)
+        if con is not None:
+            app.state.con = con
+    return con
+
+
 def create_app(config: Config | None = None, redis_client=None) -> FastAPI:
     config = config or Config.from_env()
     app = FastAPI(title="Seattle permit map")
@@ -49,7 +59,7 @@ def create_app(config: Config | None = None, redis_client=None) -> FastAPI:
     app.state.now = lambda: datetime.now(timezone.utc)  # replaced in tests
 
     def freshness() -> dict:
-        con = app.state.con
+        con = get_con(app)
         if con is None:
             return {"data_as_of": None, "data_fresh": None}
         as_of, fresh = data_freshness(con.cursor(), app.state.now())
@@ -63,7 +73,7 @@ def create_app(config: Config | None = None, redis_client=None) -> FastAPI:
 
     @app.get("/healthz")
     def healthz() -> JSONResponse:
-        con = app.state.con
+        con = get_con(app)
         if con is None:
             return JSONResponse({"status": "unavailable"}, status_code=503)
         try:
@@ -86,9 +96,10 @@ def create_app(config: Config | None = None, redis_client=None) -> FastAPI:
             work_types = permits.parse_list("work_type", q.get("work_type"), permits.WORK_TYPES)
         except permits.BadRequest as e:
             return JSONResponse({"error": str(e)}, status_code=400)
-        if app.state.con is None:
+        con = get_con(app)
+        if con is None:
             return JSONResponse({"error": "permit data is unavailable"}, status_code=503)
-        return JSONResponse(permits.query_permits(app.state.con, bbox, stages, work_types))
+        return JSONResponse(permits.query_permits(con, bbox, stages, work_types))
 
     @app.get("/api/geocode")
     async def api_geocode(q: str | None = None) -> JSONResponse:

@@ -4,7 +4,7 @@ Every task runs offline (PyPI only). Nothing builds or runs containers. Read des
 
 ## 1. App picks up the lake
 
-- [ ] 1.1 Add `get_con(app)` to `permitmap/app/main.py` and use it in `freshness()`, `/healthz` and `/api/permits` (Build notes, A8). Write `tests/test_app_lake.py`: an app created with a `Config` whose catalog doesn't exist returns 503 from `/healthz` and `/api/permits` and 200 from `/api/config` with null freshness; after `load_fixture` + `dbt build` into that same path, the next `/healthz` is 200 and `/api/permits` returns fixture permits, with no new app created; the cross-process visibility test exactly as in Build notes (apply the stated fallback if it fails, and say so in the PR). Keep `tests/test_app_basics.py` and `tests/test_api_freshness.py` passing.
+- [x] 1.1 Add `get_con(app)` to `permitmap/app/main.py` and use it in `freshness()`, `/healthz` and `/api/permits` (Build notes, A8). Write `tests/test_app_lake.py`: an app created with a `Config` whose catalog doesn't exist returns 503 from `/healthz` and `/api/permits` and 200 from `/api/config` with null freshness; after `load_fixture` + `dbt build` into that same path, the next `/healthz` is 200 and `/api/permits` returns fixture permits, with no new app created; the cross-process visibility test exactly as in Build notes (apply the stated fallback if it fails, and say so in the PR). Keep `tests/test_app_basics.py` and `tests/test_api_freshness.py` passing.
   - Verify: `python -m permitmap.load_fixture && dbt build --project-dir dbt --profiles-dir dbt -s +fct_open_permits && python -m pytest tests/test_app_lake.py tests/test_app_basics.py tests/test_api_freshness.py -q`
 
 ## 2. Image and wheel check
