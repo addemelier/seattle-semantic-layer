@@ -9,7 +9,7 @@ Every task runs offline (PyPI only). Nothing builds or runs containers. Read des
 
 ## 2. Image and wheel check
 
-- [ ] 2.1 Create `Dockerfile` and `.dockerignore` exactly per Build notes, and `permitmap/deploy/__init__.py` and `permitmap/deploy/check_wheels.py`. Write the Dockerfile part of `tests/test_deploy_files.py` (base image, non-root `USER`, `dbt parse`, the four `ENV` paths, `EXPOSE 8000`) and `tests/test_check_wheels.py` (with `subprocess.run` monkeypatched: both platforms called with `--only-binary=:all:` and the pyproject dependencies; a failing platform makes it exit non-zero and name the platform).
+- [x] 2.1 Create `Dockerfile` and `.dockerignore` exactly per Build notes, and `permitmap/deploy/__init__.py` and `permitmap/deploy/check_wheels.py`. Write the Dockerfile part of `tests/test_deploy_files.py` (base image, non-root `USER`, `dbt parse`, the four `ENV` paths, `EXPOSE 8000`) and `tests/test_check_wheels.py` (with `subprocess.run` monkeypatched: both platforms called with `--only-binary=:all:` and the pyproject dependencies; a failing platform makes it exit non-zero and name the platform).
   - Verify: `pip install -e '.[dev]' && python -m pytest tests/test_deploy_files.py tests/test_check_wheels.py -q && python -m permitmap.deploy.check_wheels`
 
 ## 3. Dagster instance and first-pull bootstrap
