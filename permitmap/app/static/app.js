@@ -10,6 +10,14 @@
   var RING_RADIUS_M = 304.8;               // 1,000 ft
   var RING_POINTS = 64;
   var EARTH_RADIUS_M = 6371008.8;
+  var MAP_MOVE_MIN_INTERVAL_MS = 2000;     // engagement events A6
+
+  // Engagement events: fire-and-forget via events.js; never throws, never waits.
+  function track(type, fields) {
+    try {
+      if (window.permitEvents) window.permitEvents.send(type, fields);
+    } catch (e) { /* analytics must never break the map */ }
+  }
 
   var statusEl = document.getElementById("status");
   var messages = {};   // keyed status messages; shown joined
@@ -83,7 +91,19 @@
     });
     return params;
   };
-  filtersForm.addEventListener("change", function () { if (app.refresh) app.refresh(); });
+  function checkedFilters() {
+    var out = {};
+    filtersForm.querySelectorAll("fieldset[data-param]").forEach(function (fs) {
+      out[fs.getAttribute("data-param")] = Array.prototype.slice
+        .call(fs.querySelectorAll("input[type=checkbox]"))
+        .filter(function (b) { return b.checked; }).map(function (b) { return b.value; });
+    });
+    return out;
+  }
+  filtersForm.addEventListener("change", function () {
+    track("filter_change", { filters: checkedFilters() });
+    if (app.refresh) app.refresh();
+  });
   filtersForm.addEventListener("submit", function (e) { e.preventDefault(); });
 
   // ---- Address search -----------------------------------------------------
@@ -122,6 +142,12 @@
     if (!map || q.length < 3) return;
     searchMessage(null);
     setSearchState("pending");
+    var searchTracked = false;              // one `search` event per submit
+    function trackSearch(fields) {
+      if (searchTracked) return;
+      searchTracked = true;
+      track("search", fields);
+    }
     fetch("/api/geocode?" + new URLSearchParams({ q: q }).toString())
       .then(function (r) {
         if (r.status === 404) return { notFound: true };
@@ -130,10 +156,12 @@
       })
       .then(function (res) {
         if (res.notFound) {
+          trackSearch({ search_text: q });
           searchMessage("Address not found in Seattle");
           setSearchState("not_found");
           return;
         }
+        trackSearch({ search_text: q, lat: res.lat, lon: res.lon });
         var lngLat = [res.lon, res.lat];
         if (searchMarker) searchMarker.remove();
         var el = document.createElement("div");
@@ -145,6 +173,7 @@
         map.flyTo({ center: lngLat, zoom: 16 });
       })
       .catch(function () {
+        trackSearch({ search_text: q });
         searchMessage("Address search is unavailable right now");
         setSearchState("unavailable");
       });
@@ -261,6 +290,15 @@
         paint: { "line-color": "#111827", "line-width": 2 }
       }, "permits");                        // ring under the pins so pins stay clickable
       map.on("moveend", scheduleRefresh);
+      var lastMapMove = 0;
+      map.on("moveend", function () {
+        if (map.getZoom() < MIN_ZOOM_FOR_PERMITS) return;
+        var now = Date.now();
+        if (now - lastMapMove < MAP_MOVE_MIN_INTERVAL_MS) return;
+        lastMapMove = now;
+        var c = map.getCenter();
+        track("map_move", { lat: c.lat, lon: c.lng });
+      });
       map.on("click", "permits", function (e) {
         if (!e.features || !e.features.length) return;
         var id = e.features[0].properties.permit_id;
@@ -268,7 +306,10 @@
         var full = (app.lastPermits ? app.lastPermits.features : []).filter(function (f) {
           return f.properties.permit_id === id;
         })[0];
-        openPanel(full ? full.properties : e.features[0].properties);
+        var props = full ? full.properties : e.features[0].properties;
+        var coords = (full || e.features[0]).geometry.coordinates;
+        openPanel(props);
+        track("permit_click", { permit_id: String(id), lat: coords[1], lon: coords[0] });
       });
       map.on("mouseenter", "permits", function () { map.getCanvas().style.cursor = "pointer"; });
       map.on("mouseleave", "permits", function () { map.getCanvas().style.cursor = ""; });
