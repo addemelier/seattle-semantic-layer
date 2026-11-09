@@ -1,0 +1,13 @@
+.git
+data/
+tests/
+docs/
+openspec/
+.claude/
+**/__pycache__
+*.pyc
+dbt/target/
+dbt/logs/
+.venv/
+.pytest_cache/
+.env
