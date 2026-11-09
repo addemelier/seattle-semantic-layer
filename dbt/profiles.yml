@@ -10,7 +10,8 @@ permitmap:
       path: ":memory:"
       threads: 1
       attach:
-        - path: "ducklake:sqlite:data/lake/catalog.sqlite"
+        # PERMITMAP_LAKE_CATALOG points dbt at another lake (the ingest CLI and tests set it).
+        - path: "ducklake:sqlite:{{ env_var('PERMITMAP_LAKE_CATALOG', 'data/lake/catalog.sqlite') }}"
           alias: lake
           # DATA_PATH is not set here: DuckLake reads it from the catalog, where
           # load_fixture recorded data/lake/files/ when it created the lake.

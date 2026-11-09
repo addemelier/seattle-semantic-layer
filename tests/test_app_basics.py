@@ -25,7 +25,7 @@ def client():
 def test_healthz_ok(client):
     r = client.get("/healthz")
     assert r.status_code == 200
-    assert r.json() == {"status": "ok"}
+    assert r.json() == {"status": "ok", "data_as_of": None, "data_fresh": None}
 
 
 def test_healthz_503_without_catalog(tmp_path):
@@ -37,7 +37,8 @@ def test_healthz_503_without_catalog(tmp_path):
 
 
 def test_config_default(client):
-    assert client.get("/api/config").json() == {"style_url": DEFAULT_STYLE_URL}
+    assert client.get("/api/config").json() == {"style_url": DEFAULT_STYLE_URL,
+                                                "data_as_of": None, "data_fresh": None}
     assert DEFAULT_STYLE_URL == "https://tiles.openfreemap.org/styles/positron"
 
 
@@ -45,7 +46,7 @@ def test_config_override(tmp_path):
     app = create_app(Config(lake_catalog=str(tmp_path / "x.sqlite"),
                             style_url="/static/blank-style.json"))
     with TestClient(app) as c:
-        assert c.get("/api/config").json() == {"style_url": "/static/blank-style.json"}
+        assert c.get("/api/config").json()["style_url"] == "/static/blank-style.json"
 
 
 def test_config_from_env():

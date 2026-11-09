@@ -12,6 +12,8 @@ DEFAULT_GEOCODER_URL = (
     "https://gisdata.seattle.gov/cosgis/rest/services/locators/MultiRoles/"
     "GeocodeServer/findAddressCandidates"
 )
+STALE_AFTER_HOURS = 36  # data older than this is shown as "may be out of date"
+DEFAULT_SOCRATA_URL = "https://cos-data.seattle.gov/resource/76t5-zqzr.csv"
 
 
 @dataclass(frozen=True)
@@ -20,6 +22,7 @@ class Config:
     lake_data: str = DEFAULT_LAKE_DATA
     style_url: str = DEFAULT_STYLE_URL
     geocoder_url: str = DEFAULT_GEOCODER_URL
+    socrata_url: str = DEFAULT_SOCRATA_URL
     host: str = "127.0.0.1"
     port: int = 8000
 
@@ -31,6 +34,7 @@ class Config:
             lake_data=env.get("PERMITMAP_LAKE_DATA", DEFAULT_LAKE_DATA),
             style_url=env.get("PERMITMAP_STYLE_URL", DEFAULT_STYLE_URL),
             geocoder_url=env.get("PERMITMAP_GEOCODER_URL", DEFAULT_GEOCODER_URL),
+            socrata_url=env.get("PERMITMAP_SOCRATA_URL", DEFAULT_SOCRATA_URL),
             host=env.get("PERMITMAP_HOST", "127.0.0.1"),
             port=int(env.get("PERMITMAP_PORT", "8000")),
         )
