@@ -179,7 +179,26 @@
       });
   });
 
+  // Data freshness label (permit-map: "Data freshness label").
+  var FRESHNESS_DATE = new Intl.DateTimeFormat("en-US",
+    { timeZone: "America/Los_Angeles", month: "short", day: "numeric" });
+
+  function showFreshness(cfg) {
+    var el = document.getElementById("freshness");
+    if (!cfg.data_as_of) {
+      el.textContent = "Sample data";
+      el.classList.remove("stale");
+    } else {
+      var text = "Permits as of " + FRESHNESS_DATE.format(new Date(cfg.data_as_of));
+      var stale = cfg.data_fresh === false;
+      el.textContent = stale ? text + ", may be out of date" : text;
+      el.classList.toggle("stale", stale);
+    }
+    el.hidden = false;
+  }
+
   fetch("/api/config").then(function (r) { return r.json(); }).then(function (cfg) {
+    showFreshness(cfg);
     var map = new maplibregl.Map({
       container: "map",
       style: cfg.style_url,
