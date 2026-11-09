@@ -1,0 +1,20 @@
+# Dagster instance for the server (design A3). The entrypoints copy this file to
+# $DAGSTER_HOME/dagster.yaml on every start, so changes ship with each deploy.
+storage:
+  sqlite:
+    base_dir: /data/dagster/storage
+
+local_artifact_storage:
+  module: dagster.core.storage.root
+  class: LocalArtifactStorage
+  config:
+    base_dir: /data/dagster/artifacts
+
+run_coordinator:
+  module: dagster.core.run_coordinator
+  class: QueuedRunCoordinator
+  config:
+    max_concurrent_runs: 1
+
+telemetry:
+  enabled: false
