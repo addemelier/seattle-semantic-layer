@@ -12,7 +12,7 @@ Everything v1 needs is built and merged: the map, the nightly ingest with freshn
 - The app picks up the lake once it exists, instead of needing a restart after the first pull.
 - A Dagster instance config that keeps run history in SQLite on its volume (no Postgres).
 - A check that every Python dependency installs on arm64 from wheels.
-- A "Deploy" section in the README with the PM's manual Hetzner and Coolify steps and the SSH-tunnel command for the Dagster UI.
+- A "Deploy" section in the README with the PM's manual Contabo and Coolify steps and the SSH-tunnel command for the Dagster UI.
 
 ## Capabilities
 

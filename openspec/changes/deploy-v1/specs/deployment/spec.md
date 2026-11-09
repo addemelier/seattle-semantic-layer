@@ -10,7 +10,7 @@ How the permit map runs on one server: what is packaged, what persists across re
 The repository SHALL contain one Compose file that runs four services from images that build on both arm64 and amd64: the map app, Redis 8, the Dagster daemon and the Dagster webserver. The app, daemon and webserver SHALL use one image built from the repository. Every Python dependency SHALL install on linux arm64 and amd64 from published wheels.
 
 #### Scenario: ARM server
-- **WHEN** the stack is built on a Hetzner ARM server
+- **WHEN** the stack is built on an ARM server, such as a later Raspberry Pi
 - **THEN** every Python dependency installs from a wheel, with nothing compiled from source
 
 ### Requirement: Data survives redeploys
