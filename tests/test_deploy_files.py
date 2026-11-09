@@ -47,3 +47,50 @@ def test_dockerfile_env_paths_and_port():
 def test_dockerignore_keeps_data_and_secrets_out():
     entries = set((REPO / ".dockerignore").read_text().split())
     assert {".git", "data/", "tests/", ".env", "dbt/target/"} <= entries
+
+
+# --- Dagster instance and entrypoints ---------------------------------------
+
+DEPLOY = REPO / "deploy"
+
+
+def _yaml(path: Path):
+    import yaml
+    return yaml.safe_load(path.read_text())
+
+
+def test_workspace_loads_definitions_module():
+    ws = _yaml(DEPLOY / "workspace.yaml")
+    assert ws["load_from"] == [{"python_module": "permitmap.orchestration.definitions"}]
+
+
+def test_dagster_yaml_sqlite_under_data_dagster_and_no_telemetry():
+    cfg = _yaml(DEPLOY / "dagster.yaml")
+    assert cfg["storage"]["sqlite"]["base_dir"].startswith("/data/dagster/")
+    assert cfg["local_artifact_storage"]["config"]["base_dir"].startswith("/data/dagster/")
+    assert cfg["telemetry"]["enabled"] is False
+    assert cfg["run_coordinator"]["class"] == "QueuedRunCoordinator"
+    assert cfg["run_coordinator"]["config"]["max_concurrent_runs"] == 1
+
+
+def _script_lines(name: str) -> list[str]:
+    return [ln.strip() for ln in (DEPLOY / name).read_text().splitlines()
+            if ln.strip() and not ln.strip().startswith("#")]
+
+
+def test_daemon_entrypoint_bootstraps_then_execs_daemon():
+    lines = _script_lines("entrypoint-daemon.sh")
+    assert lines[0] == "set -eu"
+    assert any(ln.startswith("cp ") and 'dagster.yaml "$DAGSTER_HOME/dagster.yaml"' in ln
+               for ln in lines)
+    boot = next(i for i, ln in enumerate(lines) if "permitmap.deploy.bootstrap" in ln)
+    assert lines[-1].startswith("exec dagster-daemon run")
+    assert boot < len(lines) - 1
+
+
+def test_webserver_entrypoint_execs_webserver():
+    lines = _script_lines("entrypoint-webserver.sh")
+    assert lines[0] == "set -eu"
+    assert any(ln.startswith("cp ") and "dagster.yaml" in ln for ln in lines)
+    assert lines[-1].startswith("exec dagster-webserver")
+    assert "-p 3000" in lines[-1]
