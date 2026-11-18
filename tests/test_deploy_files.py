@@ -94,3 +94,129 @@ def test_webserver_entrypoint_execs_webserver():
     assert any(ln.startswith("cp ") and "dagster.yaml" in ln for ln in lines)
     assert lines[-1].startswith("exec dagster-webserver")
     assert "-p 3000" in lines[-1]
+
+
+# --- docker-compose.yml -----------------------------------------------------
+
+import os
+import shutil
+import subprocess
+
+import pytest
+
+COMPOSE = REPO / "docker-compose.yml"
+PYTHON_SERVICES = ("app", "dagster-daemon", "dagster-webserver")
+
+
+def _compose():
+    return _yaml(COMPOSE)
+
+
+def test_compose_has_exactly_four_services_and_no_version_key():
+    cfg = _compose()
+    assert "version" not in cfg
+    assert set(cfg["services"]) == {"app", "dagster-daemon", "dagster-webserver", "redis"}
+
+
+def test_compose_only_webserver_publishes_ports_on_localhost():
+    services = _compose()["services"]
+    with_ports = {name for name, svc in services.items() if svc.get("ports")}
+    assert with_ports == {"dagster-webserver"}
+    for mapping in services["dagster-webserver"]["ports"]:
+        assert str(mapping).startswith("127.0.0.1:"), mapping
+
+
+def test_compose_app_exposes_8000_and_healthchecks_api_config():
+    app = _compose()["services"]["app"]
+    assert [str(p) for p in app["expose"]] == ["8000"]
+    assert "ports" not in app
+    test = app["healthcheck"]["test"]
+    assert "/api/config" in " ".join(test)
+    assert "/healthz" not in " ".join(test)
+
+
+def test_compose_app_requires_event_ip_salt_and_trusts_proxy():
+    env = _compose()["services"]["app"]["environment"]
+    assert re.fullmatch(r"\$\{EVENT_IP_SALT:\?[^}]+\}", env["EVENT_IP_SALT"])
+    assert str(env["PERMITMAP_TRUST_PROXY"]) == "1"
+
+
+def test_compose_python_services_share_env_and_mount_lake():
+    services = _compose()["services"]
+    for name in PYTHON_SERVICES:
+        svc = services[name]
+        assert svc["build"] == "."
+        assert svc["restart"] == "unless-stopped"
+        assert "lake:/data/lake" in svc["volumes"], name
+        env = svc["environment"]
+        assert env["PERMITMAP_LAKE_CATALOG"] == "/data/lake/catalog.sqlite"
+        assert env["PERMITMAP_LAKE_DATA"] == "/data/lake/files"
+        assert env["DAGSTER_HOME"] == "/data/dagster"
+        assert env["REDIS_URL"] == "redis://redis:6379/0"
+        assert env["PERMITMAP_SOCRATA_URL"].startswith("${PERMITMAP_SOCRATA_URL:-https://")
+
+
+def test_compose_dagster_services_mount_dagster_home_and_run_entrypoints():
+    services = _compose()["services"]
+    for name, script in (("dagster-daemon", "entrypoint-daemon.sh"),
+                         ("dagster-webserver", "entrypoint-webserver.sh")):
+        svc = services[name]
+        assert "dagster_home:/data/dagster" in svc["volumes"], name
+        assert svc["command"] == ["sh", f"/app/deploy/{script}"]
+
+
+def test_compose_redis_appendonly_with_volume_and_no_ports():
+    redis = _compose()["services"]["redis"]
+    assert redis["image"] == "redis:8-alpine"
+    assert "ports" not in redis
+    cmd = redis["command"]
+    assert "--appendonly" in cmd and cmd[cmd.index("--appendonly") + 1] == "yes"
+    assert "redis_data:/data" in redis["volumes"]
+
+
+def test_compose_declares_three_volumes():
+    assert set(_compose()["volumes"]) == {"lake", "redis_data", "dagster_home"}
+
+
+# Placeholder values that are not secrets: "x" is the dummy the deploy-v1
+# tasks use for `docker compose config`.
+_SALT_PLACEHOLDERS = {"x"}
+
+
+def test_no_literal_event_ip_salt_committed():
+    files = subprocess.run(["git", "ls-files", "-co", "--exclude-standard"], cwd=REPO,
+                           capture_output=True, text=True, check=True).stdout.split()
+    pattern = re.compile(r"(?<!\{)EVENT_IP_SALT\s*[:=]\s*[\"']?([^\s\"'`]+)")
+    offenders = []
+    for rel in files:
+        if rel.startswith("tests/"):
+            continue
+        path = REPO / rel
+        try:
+            text = path.read_text()
+        except (UnicodeDecodeError, FileNotFoundError, IsADirectoryError):
+            continue
+        for m in pattern.finditer(text):
+            value = m.group(1)
+            if value.startswith("${") or value in _SALT_PLACEHOLDERS:
+                continue
+            offenders.append(f"{rel}: {m.group(0)}")
+    assert not offenders, offenders
+
+
+def _docker_compose_env(**extra):
+    env = {k: v for k, v in os.environ.items() if k != "EVENT_IP_SALT"}
+    env.update(extra)
+    return env
+
+
+@pytest.mark.skipif(shutil.which("docker") is None, reason="docker CLI not installed")
+def test_docker_compose_config_validates():
+    ok = subprocess.run(["docker", "compose", "config", "-q"], cwd=REPO,
+                        env=_docker_compose_env(EVENT_IP_SALT="x"),
+                        capture_output=True, text=True)
+    assert ok.returncode == 0, ok.stderr
+    missing = subprocess.run(["docker", "compose", "config", "-q"], cwd=REPO,
+                             env=_docker_compose_env(), capture_output=True, text=True)
+    assert missing.returncode != 0
+    assert "EVENT_IP_SALT" in missing.stderr

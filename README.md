@@ -80,6 +80,28 @@ Settings:
 
 `python -m permitmap.drain_events` moves events from the stream to date-partitioned Parquet under `data/landing/events/` (it reads `REDIS_URL` too). Event data is never committed.
 
+## Deploy
+
+The live map runs on a Raspberry Pi 5 at home with [Coolify](https://coolify.io), public through a Cloudflare Tunnel. `docker-compose.yml` defines four services from one image: `app` (the map), `dagster-daemon` (the 5:00am refresh, plus the first pull on a fresh server), `dagster-webserver` (the Dagster UI, private) and `redis` (engagement events). Steps on the Pi:
+
+1. Check the Pi runs 64-bit Raspberry Pi OS (`uname -m` prints `aarch64`), update it (`sudo apt update && sudo apt full-upgrade`), and give it a fixed address on your router.
+2. Install Coolify with its one-line installer (see the coolify.io docs). Open `http://<pi-lan-ip>:8000` from your home network and create the admin account immediately.
+3. Buy a domain (or move one) to Cloudflare. In Cloudflare: Networking → Tunnels → Create tunnel, choose Docker, and copy only the token.
+4. In Coolify: + New → search "Cloudflared" → paste the token as its environment variable → deploy. In Cloudflare, add a route to the tunnel: subdomain `*`, your domain, service `http://localhost:80` (use `http://127.0.0.1:80` if that fails).
+5. Coolify dashboard and auto-deploy: in Coolify Settings, set the instance domain to `https://coolify.<domain>`. In Cloudflare Zero Trust → Access, add an application for `coolify.<domain>` allowing only your email, and a second one for `coolify.<domain>/webhooks` with a Bypass policy so GitHub can reach it.
+6. In Coolify: Sources → GitHub App (install it on this repo only), then + New Resource from the repo, build pack Docker Compose, file `docker-compose.yml`.
+7. Set `EVENT_IP_SALT` in the resource's environment variables; generate a value with `openssl rand -hex 32`. The stack refuses to start without it.
+8. On the `app` service, set the domain to `https://map.<domain>`, set "Redirect HTTP to HTTPS" to Disabled (the tunnel reaches Coolify over HTTP; leaving it on causes too many redirects), turn on auto-deploy, and deploy. Within minutes the map shows "Permits as of" today.
+9. Dagster UI: from your home network, `ssh -L 3000:127.0.0.1:3000 <user>@<pi-lan-ip>`, then open <http://localhost:3000>.
+10. If the first pull is rejected, the Dagster daemon log and `lake.bronze.ingest_runs` show the reason (a missing-columns rejection lists what Socrata sent).
+
+Notes:
+
+- No backups yet. Permit data can be re-pulled; engagement events in Redis would be lost with the Pi.
+- The Pi boots from its SD card for now; an NVMe SSD comes later.
+- Every merge to `main` redeploys automatically.
+- Moving to a VPS later is the same Compose file without the tunnel, with the three volumes (`lake`, `redis_data`, `dagster_home`) copied over.
+
 ## How this repo is built
 
 Spec-driven with [OpenSpec](https://github.com/Fission-AI/OpenSpec). Design sessions use the `brainstorming` skill from [obra/superpowers](https://github.com/obra/superpowers) and `grill-me` from [mattpocock/skills](https://github.com/mattpocock/skills) (both MIT; licenses kept alongside each skill). Approved changes are implemented by agents and land as pull requests. See `CLAUDE.md`.

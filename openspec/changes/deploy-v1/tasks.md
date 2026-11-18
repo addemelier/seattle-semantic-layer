@@ -19,5 +19,5 @@ Every task runs offline (PyPI only). Nothing builds or runs containers. Read des
 
 ## 4. Compose file and README
 
-- [ ] 4.1 Create `docker-compose.yml` exactly per Build notes and add its structure checks to `tests/test_deploy_files.py` (all Compose assertions listed in Build notes, including the scan that no literal `EVENT_IP_SALT` value is committed). Add the "Deploy" section to `README.md` per Build notes. If the `docker` CLI is present, also run `EVENT_IP_SALT=x docker compose config -q` in the test (skip the test when `docker` is absent); don't build or pull.
+- [x] 4.1 Create `docker-compose.yml` exactly per Build notes and add its structure checks to `tests/test_deploy_files.py` (all Compose assertions listed in Build notes, including the scan that no literal `EVENT_IP_SALT` value is committed). Add the "Deploy" section to `README.md` per Build notes. If the `docker` CLI is present, also run `EVENT_IP_SALT=x docker compose config -q` in the test (skip the test when `docker` is absent); don't build or pull.
   - Verify: `python -m pytest tests/test_deploy_files.py -q && python -m pytest -q`
