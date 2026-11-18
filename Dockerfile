@@ -25,7 +25,8 @@ RUN useradd --uid 10001 --create-home app \
     && chown -R app /data /app/dbt
 USER app
 
-ENV PERMITMAP_HOST=0.0.0.0 \
+ENV PYTHONPATH=/app \
+    PERMITMAP_HOST=0.0.0.0 \
     PERMITMAP_PORT=8000 \
     PERMITMAP_LAKE_CATALOG=/data/lake/catalog.sqlite \
     PERMITMAP_LAKE_DATA=/data/lake/files \
