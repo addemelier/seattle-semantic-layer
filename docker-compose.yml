@@ -1,0 +1,67 @@
+# Production stack (deploy-v1): map app, Dagster daemon + webserver, Redis.
+# One image for the three Python services; the lake is mounted at /data/lake
+# everywhere because the DuckLake catalog records absolute paths.
+# Secrets come from the host (Coolify); nothing secret is committed here.
+
+x-permitmap-env: &permitmap-env
+  PERMITMAP_LAKE_CATALOG: /data/lake/catalog.sqlite
+  PERMITMAP_LAKE_DATA: /data/lake/files
+  DAGSTER_HOME: /data/dagster
+  REDIS_URL: redis://redis:6379/0
+  PERMITMAP_SOCRATA_URL: ${PERMITMAP_SOCRATA_URL:-https://cos-data.seattle.gov/resource/76t5-zqzr.csv}
+
+services:
+  app:
+    build: .
+    environment:
+      <<: *permitmap-env
+      EVENT_IP_SALT: ${EVENT_IP_SALT:?set EVENT_IP_SALT in Coolify}
+      PERMITMAP_TRUST_PROXY: "1"
+    expose:
+      - "8000"
+    volumes:
+      - lake:/data/lake
+    depends_on:
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/config', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  dagster-daemon:
+    build: .
+    command: ["sh", "/app/deploy/entrypoint-daemon.sh"]
+    environment:
+      <<: *permitmap-env
+    volumes:
+      - lake:/data/lake
+      - dagster_home:/data/dagster
+    restart: unless-stopped
+
+  dagster-webserver:
+    build: .
+    command: ["sh", "/app/deploy/entrypoint-webserver.sh"]
+    environment:
+      <<: *permitmap-env
+    volumes:
+      - lake:/data/lake
+      - dagster_home:/data/dagster
+    # Private: reach it with an SSH tunnel (see README "Deploy").
+    ports:
+      - "127.0.0.1:3000:3000"
+    restart: unless-stopped
+
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  lake: {}
+  redis_data: {}
+  dagster_home: {}
